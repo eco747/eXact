@@ -1,0 +1,84 @@
+body {
+	margin: 0;
+}
+
+.x-unselectable {
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none;   /* Chrome/Safari/Opera */
+	-khtml-user-select: none;    /* Konqueror */
+	-moz-user-select: none;      /* Firefox */
+	-ms-user-select: none;       /* Internet Explorer/Edge */
+	user-select: none;           /* Non-prefixed version, currently not supported by any browser */
+}
+
+.x-app {
+	left:0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	position: absolute;
+	font-family: sans-serif;
+}
+
+.x-glyph {
+	font-family: fontawesome;
+	display: inline-block;
+}
+
+.x-text {
+	cursor: default;
+}
+
+.x-app-bar {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: 0 8px;
+	color: white;
+	background-color: rgb(0, 188, 212);
+
+	.x-text {
+		color: #fff;
+		font-size: 24px;
+		display: inline-block;
+		flex-grow: 1;
+		padding: 8px;
+	}
+}
+
+.x-bottom-navigation
+{
+	position: absolute;
+	bottom: 0;
+	min-height: 32px;
+    display: flex;
+    justify-content: center;
+    background-color: #fff;
+    width: 100%;
+    color: rgba(0, 0, 0, 0.541176);
+    cursor: pointer;
+
+    &.selected {
+    	color: #00bcd4;
+    }
+
+    .x-bottom-navigation-item {
+    	padding-top: 6px;
+		padding-bottom: 10px;
+		padding-left: 12px;
+		padding-right: 12px;
+		min-width: 80px;
+		max-width: 168px;
+		text-align: center;
+
+	    .x-icon {
+	    	display: block;
+	    	width: 100%;
+	    }
+
+	    .x-text {
+	    	font-size: 12px;
+	    	padding-top: 2px;
+	    }
+	}
+}
