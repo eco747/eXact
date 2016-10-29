@@ -24,14 +24,13 @@
 			this.data 		= {};
 			this.events 	= {};
 			this.states 	= {};
-
-			this._watchs 	= {};			
+	
 			this._proxy 	= this._selfWatch( );
 			return this._proxy;
 		}
 
 		/**
-		 * Emit the Json object definition in the Vue format
+		 * Emit the Json object definition in the React format
 		 * @param  {Object} JSon definition
 		 * @return {Object} Vue object
 		 */
@@ -138,6 +137,33 @@
 				delete states[name];
 				this._refresh( );
 			}
+		}
+
+		/**
+		 * start a timer 
+		 * @param  {Number} ms repeat time in 
+		 * @param {Boolean}	repeat true for an interval timer
+		 * @param  {Function} fn function to call (automatically binded to this)
+		 * @return {Number}   the timer id
+		 * @cf stopTimer
+		 */
+		
+		onTimer( ms, repeat, fn ) {
+			if( repeat ) {
+				return  {i:setInterval( fn.bind(this._proxy), ms ), r:true };
+			}
+			else {
+				return  {i:setTimeout( fn.bind(this._proxy), ms ), r:false };
+			}
+		}
+
+		/**
+		 * stop the timer
+		 * @param  {Number} id timer id created with onTimer
+		 */
+		
+		stopTimer( id ) {
+			(id.r==false ? clearTimeout : clearInterval)( id.i );
 		}
 
 		/**
