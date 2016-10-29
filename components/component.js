@@ -22,6 +22,7 @@
 			this.change_id 	= 0;
 
 			this.data 		= {};
+			this.events 	= {};
 			this.states 	= {};
 
 			this._watchs 	= {};			
@@ -58,7 +59,7 @@
 			
 			// add states to the class
 			for( i in this.states ) {
-				cls += ' x-state-' + babelCase(i);
+				cls += ' x-state-' + kebabCase(i);
 			}
 
 			props.className = cls;
@@ -111,9 +112,10 @@
 			}
 
 			//	for the main element, we add events handlers
-			if( lvl==0 && this.evts ) {
-				for( i in this.evts ) {
-					props[i] = this.evts[i];
+			if( lvl==0 && this.events ) {
+				t = this.events;
+				for( i in t ) {
+					props[i] = t[i].bind(this._proxy);
 				}
 			}
 
@@ -121,11 +123,21 @@
 		}
 
 		/**
-		 * called by react to render the object
+		 * change the component state
 		 */
 		
-		_render( ) {
-			return this.emit( this.onRender.call( this._proxy ) );
+		setState( name, set=true ) {
+
+			let states = this.states;
+
+			if( set && !(name in states) ) {
+				states[name] = true;
+				this._refresh( );
+			}
+			else if( !set && (name in states) ) {
+				delete states[name];
+				this._refresh( );
+			}
 		}
 
 		/**
@@ -142,6 +154,15 @@
 			);
 		}
 
+		/**
+		 * called by react to render the object
+		 * 	we force the proxy to be this
+		 */
+		
+		_render( ) {
+			return this.emit( this.onRender.call( this._proxy ) );
+		}
+		
 		/**
 		 * auto watch myself 
 		 * if you try to change or get a value not in this object
@@ -264,20 +285,6 @@
 			}
 		}
 
-		/**
-		 * 
-		 */
-		
-		setState( name, set ) {
-			if( set && !name in this.states ) {
-				this.states[name] = true;
-				this._refresh( );
-			}
-			else if( !set && name in this.states ) {
-				delete this.states[name];
-				this._refresh( );
-			}
-		}
 	}
 
 	$$.Component = Component;

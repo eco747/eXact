@@ -12,6 +12,11 @@ class BottomNavigationItem extends Component
 		this.data = {
 			text: text || ' '
 		};
+
+		this.events = {
+			onmouseenter: this.onMouseEnter,
+			onmouseleave: this.onMouseLeave
+		}
 	}
 
 	onRender( ) {
@@ -24,6 +29,14 @@ class BottomNavigationItem extends Component
 				}
 			]
 		}
+	}
+
+	onMouseEnter( e ) {
+		this.setState( 'hover' );
+	}
+
+	onMouseLeave( e ) {
+		this.setState( 'hover', false );
 	}
 }
 
