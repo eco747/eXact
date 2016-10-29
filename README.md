@@ -15,7 +15,7 @@ Just create a file named app.js
     class App extends Component
     {
         /**
-         * contructor, just call our Component contructor & create our AppBar component
+         * contructor, just call our Component constructor & create our AppBar component
          */
          
         constructor( ) {
