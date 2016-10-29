@@ -2,6 +2,9 @@
 **eXact** is a Javascript Application Framework.  
 **eXact** is a bridge between [ ExtJs ](www.sencha.com) the great framework that is saddly sooo expensive and [ React ](www.react.org) that is sooo different in the way we build application.
 
+Care, **eXact** only works on modern browsers, forget IE6.
+**eXact** is really small 
+
 ## Concept
 
 A Sample is often simpliest to understand things, we will create an application with a title bar (named AppBar) and a bottom navigation bar (named BottomNavigationBar).
@@ -56,7 +59,7 @@ In out app.html, we will add this
 		<!-- our .js file -->
 		<script type="text/javascript" src="main.js"></script>
 		<!-- The exact style sheets -->
-		<link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 		<link rel="stylesheet" type="text/css" href="exact.css">
 	</head>
 	<body>
