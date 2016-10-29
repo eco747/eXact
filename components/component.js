@@ -1,350 +1,285 @@
+(function($$) {
 
-
-/**
- * check if a variable is a number
- * @param  {any}
- * @return {Boolean}
- */
-
-function isNumber( v ) {
-	return (typeof v === 'number');
-}
-
-/**
- * test if an object is empty
- * @param  {Object} object to test
- * @return {Boolean}
- */
-
-function isEmpty( obj ) {
-
-	if( !obj ) {
-		return true;
-	}
-
-    for( var key in obj ){
-        return false; 
-    }
-
-    return true;
-}
-
-/**
- * test if a variable is a String
- * @param  {any} variable to test
- * @return {Boolean}
- */
-
-function isString( a ) {
-	return 	!!a && a.constructor===String;
-}
-
-/**
- * test if a variable is an Array
- * @param  {any} variable to test
- * @return {Boolean}
- */
-
-function isArray( a ) {
-	return 	!!a && a.constructor===Array;
-}
-
-/**
- * test if a variable is an object
- * @param  {any} variable to test
- * @return {Boolean}
- */
-
-function isObject( a ) {
-	return 	!!a && a.constructor===Object;
-}
-
-/**
- * taken from github tdukart/kebabCase.js
- * @param  {String} text to kebabeize
- * @return {String}
- */
-
-const 	kebab_re = /([a-z][A-Z])/g;
-const 	kebab2_re = /[^-a-z0-9]+/g;
-
-function kebabCase(string) {
-	
-	var result = string;
-
-	// Convert camelCase capitals to kebab-case.
-	result = result.replace( kebab_re, function(match) {
-		return match.substr(0, 1) + '-' + match.substr(1, 1).toLowerCase();
-	});
-
-	// Convert non-camelCase capitals to lowercase.
-	result = result.toLowerCase();
-
-	// Convert non-alphanumeric characters to hyphens
-	result = result.replace( kebab2_re, '-');
-
-	// Remove hyphens from both ends
-	result = result.replace(/^-+/, '').replace(/-$/, '');
-
-  	return result;
-}
-
-
-
-/**
- * call a function a soon as possible
- * @param {Function} function to call
- * @param {Object} scope scope of the function or null
- * @param {arguments} arguments to push on the call
- */
-
-let 	_asaps	= null;
-function asap( fn, scope, ...args ) {
-
-	if( !_asaps ) {
-
-		_asaps = [];
-
-		requestAnimationFrame( function() {
-			var t  = _asaps;
-			_asaps = null;
-
-			for( let i=0; i<t.length; i++ ) {
-				t[i]( );
-			}
-		});
-	}
-
-	_asaps.unshift( fn.bind(scope, ...args ) );
-}
-
-
-const 	skipped_attrs = ['tag', 'cls','items','content'];
-
-/**
- * Base Component Object
- */
-
-class  Component extends React.Component
-{
-	constructor( ) {
-
-		super( );
-
-		this.clsName	= 'x-' + kebabCase(this.constructor.name);
-		this.change_id 	= 0;
-		this.data 		= {};
-				
-		this._proxy 	= this._selfWatch( );
-		return this._proxy;
-	}
+	const 	skipped_attrs = {
+		'tag': true,
+		'cls': true,
+		'items': true,
+		'content': true
+	};
 
 	/**
-	 * Emit the Json object definition in the Vue format
-	 * @param  {Object} JSon definition
-	 * @return {Object} Vue object
+	 * Base Component Object
 	 */
-	
-	emit( desc, lvl=0 ) {
-		
-		if( !desc ) {
-			return null;
+
+	class  Component 
+	{
+		constructor( ) {
+			this._ 			= new React.Component( );
+			this._.__debug 	= this.constructor.name;				
+			this._.render 	= ( ) => {return this._render( );};
+
+			this.clsName	= 'x-' + kebabCase(this.constructor.name);
+			this.change_id 	= 0;
+
+			this.data 		= {};
+			this.states 	= {};
+
+			this._watchs 	= {};			
+			this._proxy 	= this._selfWatch( );
+			return this._proxy;
 		}
 
-		var props = {},
-			items = [],
-			i, t, tag;
+		/**
+		 * Emit the Json object definition in the Vue format
+		 * @param  {Object} JSon definition
+		 * @return {Object} Vue object
+		 */
+		
+		emit( desc, lvl=0 ) {
+			
+			if( !desc ) {
+				return null;
+			}
 
-		// first: the tag
-		tag	= desc.tag || 'div';
+			var props = {},
+				items = [],
+				cls   = lvl==0 ? this.clsName : '',
+				i, t, tag;
 
-		// get class, by default, the Object class name is added (only for the main element (not childen) 
-		if( lvl==0 ) {
+			// first: the tag
+			tag	= desc.tag || 'div';
 
-			props.className = this.clsName;
-
+			// next class name
+			// 	by default, the Object class name is added (only for the main element (not childen) 
+			// 	ie. if your class is MyClass, the class x-my-class will be set
 			if( desc.cls) {
-				props.className += ' ' + desc.cls;
+				cls += ' ' + desc.cls;
 			}
-		}
-		else {
-			if( desc.cls ) {
-				props.className = desc.cls;
-			}
-		}
-
-		// copy attributes but the one that need to be patched
-		props.attrs = [];
-		
-		for( i in desc ) {
-			if( !desc.hasOwnProperty(i) ) {
-				continue;
+			
+			// add states to the class
+			for( i in this.states ) {
+				cls += ' x-state-' + babelCase(i);
 			}
 
-			if( skipped_attrs.indexOf(i)>=0 ) {
-				continue;
-			}
+			props.className = cls;
 
-			props[i] = desc[i];
-		}
-
-		//	prepare sub elements
-		t = desc.items;
-		if( t ) {
-
-			//	direct string ?
-			//		content equivalent
-			if( isString(t) ) {
-				items.push( t );
-			}
-			else {
-				// direct child ? 
-				// 		(avoid [{...}])
-				if( !isArray(t) ) {
-					t = [t];
+			// next attributes
+			// 	copy all but the one that need to be processed
+			props.attrs = [];
+			
+			for( i in desc ) {
+				if( !desc.hasOwnProperty(i) ||
+					skipped_attrs[i] ) {
+					continue;
 				}
 
-				for( i in t ) {
-					if( t[i] instanceof Component ) {
-						items.push( React.createElement( t[i] ) );
-					}
-					else if( isObject(t[i]) ) {
-						items.push( this.emit(t[i],lvl+1) );
-					}
-					else {
-						items.push(	t[i] );
-					}
-				}
+				props[i] = desc[i];
 			}
-		}
-		//	or direct content (always text)
-		else if( desc.content && isString(desc.content) ) {
-			items.push( desc.content );
-		}
 
-		//	for the main element, we add events handlers
-		if( lvl==0 && this.evts ) {
-			for( i in this.evts ) {
-				props[i] = this.evts[i];
-			}
-		}
+			//	prepare sub elements
+			t = desc.items;
+			if( t ) {
 
-		return React.createElement( tag, props, items );
-	}
-
-	/**
-	 * called by react to render the object
-	 */
-	
-	render( ) {
-		return this.emit( this.onRender.call( this._proxy ) );
-	}
-
-	/**
-	 * 	create the object to a specified element
-	 */
-	
-	static renderTo( el ) {
-
-		React.render(
-			React.createElement( this ),
-		  	isString(el) ? document.getElementById(el) : el
-		);
-	}
-
-	/**
-	 * auto watch myself 
-	 * if you try to change or get a value not in this object
-	 * try to find in in the data object.
-	 * if data itself is changed, re-watch data, then fire an update
-	 * __self__ is added as (virtual) property to get the real *this*
-	 */
-	
-	_selfWatch( target ) {
-
-		let self = this;
-		return new Proxy( this, {
-
-			get: function( me, name ) {
-
-				if( name==='__self__' ) {
-					return self;
-				}
-
-				if( name in me ) {
-					return me[name];
-				}
-
-				if( name in me.data ) {
-					return me.data[name];
-				}
-			},
-		
-			set: function( me, name, value ) {
-
-				if( name in me ) {
-					me[name] = value;
-
-					if( name=='data' ) {
-						self._watchDatas( );
-					}
-				}
-				else if( name in me.data ) {
-					me.data[name] = value;
-					self._postRender( );
+				//	direct string ?
+				//		content equivalent
+				if( isString(t) ) {
+					items.push( t );
 				}
 				else {
-					me[name] = value;
-				}
+					// direct child ? 
+					// 		(avoid [{...}])
+					if( !isArray(t) ) {
+						t = [t];
+					}
 
-				return true;
+					for( i in t ) {
+						if( t[i] instanceof Component ) {
+							items.push( React.createElement( t[i]._ ) );
+						}
+						else if( isObject(t[i]) ) {
+							items.push( this.emit(t[i],lvl+1) );
+						}
+						else {
+							items.push(	t[i] );
+						}
+					}
+				}
 			}
-		});
+			//	or direct content (always text)
+			else if( desc.content && isString(desc.content) ) {
+				items.push( desc.content );
+			}
 
-	}
-
-	/**
-	 * watch the 'data' object for any change
-	 * in case of change, fire a refresh
-	 * disallow data structure modification
-	 */
-	
-	_watchDatas( ) {
-
-		let self = this;
-		let data = new Proxy( this.data, {
-			
-			get: function( me, name ) {
-				if( me[name] ) {
-					return me[name];
+			//	for the main element, we add events handlers
+			if( lvl==0 && this.evts ) {
+				for( i in this.evts ) {
+					props[i] = this.evts[i];
 				}
-			},
+			}
+
+			return React.createElement( tag, props, items );
+		}
+
+		/**
+		 * called by react to render the object
+		 */
 		
-			set: function( me, name, value ) {
-				if( !me.hasOwnProperty(name) ) {
-					return false;
+		_render( ) {
+			return this.emit( this.onRender.call( this._proxy ) );
+		}
+
+		/**
+		 * 	create the object to a specified element
+		 */
+		
+		static renderTo( el ) {
+
+			let component = new this( );
+
+			React.render(
+				React.createElement( component._ ),
+			  	isString(el) ? document.getElementById(el) : el
+			);
+		}
+
+		/**
+		 * auto watch myself 
+		 * if you try to change or get a value not in this object
+		 * try to find in in the data object.
+		 * if data itself is changed, re-watch data, then fire an update
+		 * __self__ is added as (virtual) property to get the real *this*
+		 */
+		
+		_selfWatch( target ) {
+
+			let self = this;
+			return new Proxy( this, {
+
+				get: function( me, name ) {
+
+					if( name==='__self__' ) {
+						return self;
+					}
+
+					if( name in me ) {
+						return me[name];
+					}
+
+					if( name in me.data ) {
+						return me.data[name];
+					}
+				},
+			
+				set: function( me, name, value ) {
+
+					if( name in me ) {
+						me[name] = value;
+
+						if( name=='data' ) {
+							self._watchDatas( );
+						}
+					}
+					else if( name in me.data ) {
+						me.data[name] = value;
+						self._refresh( );
+					}
+					else {
+						me[name] = value;
+					}
+
+					return true;
 				}
+			});
 
-				me[name] = value;
-				self._postRender( );
-				return true;
+		}
+
+		/**
+		 * watch the 'data' object for any change
+		 * in case of change, fire a refresh
+		 * disallow data structure modification
+		 */
+		
+		_watchDatas( ) {
+
+			let self = this;
+			let ndata = new Proxy( this.data, {
+				
+				get: function( data, name ) {
+					if( data[name] ) {
+						return data[name];
+					}
+				},
+			
+				set: function( data, name, value ) {
+					if( !data.hasOwnProperty(name) ) {
+						return false;
+					}
+
+					data[name] = value;
+					self._refresh( );
+					return true;
+				}
+			});
+
+			this.data = ndata;
+		}
+
+		/**
+		 * watch the watchers
+		 */
+		
+		_watchWatchers( ) {
+
+			let self = this;
+			let ndata = new Proxy( this.data, {
+				
+				get: function( data, name ) {
+					if( data[name] ) {
+						return data[name];
+					}
+				},
+			
+				set: function( data, name, value ) {
+					if( !data.hasOwnProperty(name) ) {
+						return false;
+					}
+
+					data[name] = value;
+					self._refresh( );
+					return true;
+				}
+			});
+
+			this.data = ndata;
+		}
+
+
+		/**
+		 * fire a refresh on the object
+		 */
+		
+		_refresh( ) {
+			if( this._.isMounted() ) {
+				this._.setState( {c:this.change_id++} );
 			}
-		});
+		}
 
-		this.data = data;
-	}
-
-	/**
-	 * fire a refresh on the object
-	 */
-	
-	_postRender( ) {
-		if( this.isMounted() ) {
-			console.log( 'refresh' );
-			this.setState( {c:this.change_id++} );
+		/**
+		 * 
+		 */
+		
+		setState( name, set ) {
+			if( set && !name in this.states ) {
+				this.states[name] = true;
+				this._refresh( );
+			}
+			else if( !set && name in this.states ) {
+				delete this.states[name];
+				this._refresh( );
+			}
 		}
 	}
 
-	
-}
+	$$.Component = Component;
 
+})( window || this );
