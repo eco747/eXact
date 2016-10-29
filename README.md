@@ -45,8 +45,8 @@ In out app.html, we will add this
 ```html
     <html>
 	<head>
-	    <!-- The reactx library -->
-		<script type="text/javascript" src="lib/reactx.js"></script>
+	        <!-- The exactx library -->
+		<script type="text/javascript" src="lib/exact.js"></script>
 		
 		<!-- Misc components (we also can include a packed file) -->
 		<script type="text/javascript" src="components/component.js"></script>
