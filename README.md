@@ -119,6 +119,8 @@ Wait, just look at that code we will add in the constructor:
 Woo, the time is displayed dynamically, just when I change `app_bar.title` ?  
 Yes, in **eXact**, some members changes immediatly update elements.  
 
+By the way, if you change the timer down to 10ms, look at the tree changes in your browser dev tools, the node is changed only when the content change - not always.
+
 Now, we will add some buttons in our BottomNavigationBar:
 
 ```javascript
