@@ -45,21 +45,19 @@ In out app.html, we will add this
 ```html
     <html>
 	<head>
-	        <!-- The exactx library -->
+	    <!-- The exact library -->
 		<script type="text/javascript" src="lib/exact.js"></script>
-		
+		<script type="text/javascript" src="lib/utils.js"></script>
 		<!-- Misc components (we also can include a packed file) -->
 		<script type="text/javascript" src="components/component.js"></script>
 		<script type="text/javascript" src="components/icon.js"></script>
 		<script type="text/javascript" src="components/app-bar.js"></script>
 		<script type="text/javascript" src="components/bottom-navigation.js"></script>
-	
-	    <!-- our .js file -->
+		<!-- our .js file -->
 		<script type="text/javascript" src="app.js"></script>
-		
-		<!-- The reactx style sheets -->
+		<!-- The exact style sheets -->
 		<link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
-		<link rel="stylesheet" type="text/css" href="reactx.css">
+		<link rel="stylesheet" type="text/css" href="exact.css">
 	</head>
 	<body>
 	</body>
