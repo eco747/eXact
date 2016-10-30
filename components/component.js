@@ -7,6 +7,16 @@
 		'content': true
 	};
 
+	const 	event_map = {
+		beforeMount: 	'componentWillMount',
+		afterMount:  	'componentDidMount',
+		beforeUnmount:  'componentWillUnmount',
+		afterUnmount: 	'componentDidUnmount',
+		beforeUpdate: 	'componentWillUpdate',
+		afterUpdate: 	'componentDidUpdate',
+	};
+
+
 	/**
 	 * Base Component Object
 	 */
@@ -24,6 +34,8 @@
 			this.data 		= {};
 			this.events 	= {};
 			this.states 	= {};
+
+			this._dataChanged = null;
 	
 			this._proxy 	= this._selfWatch( );
 			return this._proxy;
@@ -122,6 +134,31 @@
 		}
 
 		/**
+		 * life cycle notifications
+		 * accept 
+		 * {
+		 *  	[beforeMount,afterMount,beforeUnmount,afterUnmount,beforeUpdate,afterUpdate] : function
+		 * }
+		 */
+
+		on( events ) {
+
+			let 	i, n;
+			for( i in events ) {
+
+				if( i=='dataChanged' ) {
+					this._dataChanged = events[i].bind( this._proxy );
+				}
+				else {
+					n = event_map[i];
+					if( n ) {
+						this._[n] = events[i].bind( this._proxy );
+					}
+				}
+			}
+		}
+
+		/**
 		 * change the component state
 		 */
 		
@@ -148,7 +185,7 @@
 		 * @cf stopTimer
 		 */
 		
-		onTimer( ms, repeat, fn ) {
+		startTimer( ms, repeat, fn ) {
 			if( repeat ) {
 				return  {i:setInterval( fn.bind(this._proxy), ms ), r:true };
 			}
@@ -204,30 +241,59 @@
 
 				get: function( me, name ) {
 
-					if( name==='__self__' ) {
-						return self;
-					}
-
 					if( name in me ) {
 						return me[name];
+					}
+
+					if( name==='__self__' ) {
+						return self;
 					}
 
 					if( name in me.data ) {
 						return me.data[name];
 					}
+
+					console.log( 'unknown property ' + name ); 
 				},
 			
 				set: function( me, name, value ) {
 
-					if( name in me ) {
-						me[name] = value;
+					let data = me.data;
 
+					if( name in me ) {
+
+						// if trying to change the whole data object						
 						if( name=='data' ) {
-							self._watchDatas( );
+							// any change ?
+							if( !shallowEqual(value,data) ) {
+								
+								let odata = self._dataChanged ? cloneObject( data ) : null;
+								me.data = value;
+								self._watchDatas( );
+
+								// fire a dataChanged
+								if( self._dataChanged ) {
+									self._dataChanged.call( self, odata, me.data );
+								}
+
+								self._refresh( );
+							}
+						}
+						else {
+							me[name] = value;
 						}
 					}
-					else if( name in me.data ) {
+					//	trying to change a data element
+					else if( name in data ) {
+						
+						let odata = self._dataChanged ? cloneObject(data) : null;
 						me.data[name] = value;
+						
+						// fire a dataChanged
+						if( self._dataChanged ) {
+							self._dataChanged.call( self, odata, me.data );
+						}
+
 						self._refresh( );
 					}
 					else {
@@ -237,7 +303,40 @@
 					return true;
 				}
 			});
+		}
 
+		/**
+		 * 
+		 */
+		
+		updateData( newdata ) {
+
+			let data  = this.data.__self__,
+				odata = null,
+				ref = false,
+				i;
+
+			for( i in newdata ) {
+
+				if( newdata.hasOwnProperty(i) && data.hasOwnProperty(i) ) {
+					
+					if( data[i] !== newdata[i] ) {
+						if( !odata ) {
+							odata = cloneObject(data);
+						}
+
+						data[i]  = newdata[i];
+					}
+				}
+			}
+
+			if( odata ) {
+				if( this._dataChanged ) {
+					this._dataChanged( odata, data );
+				}
+
+				this._refresh( );
+			}
 		}
 
 		/**
@@ -252,6 +351,11 @@
 			let ndata = new Proxy( this.data, {
 				
 				get: function( data, name ) {
+
+					if( name==='__self__' ) {
+						return data;
+					}
+					
 					if( data[name] ) {
 						return data[name];
 					}
@@ -262,8 +366,16 @@
 						return false;
 					}
 
-					data[name] = value;
-					self._refresh( );
+					if( data[name] !== value ) {
+						let odata = self._dataChanged ? cloneObject(data) : null;
+						data[name] = value;
+						if( self._dataChanged ) {
+							self._dataChanged.call( self, odata, data );
+						}
+
+						self._refresh( );
+					}
+
 					return true;
 				}
 			});
