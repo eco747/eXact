@@ -847,21 +847,22 @@ class Grid extends Component {
 			 * Width of Grid; this property determines the number of visible (vs virtualized) columns.
 			 * {Number}
 			 */
-			width: 100
+			width: 100,
 		});
 
 		this.on( {
 			beforeMount: this.beforeMount,
 			afterMount: this.afterMount,
 			beforeUnmount: this.beforeUnmount,
-			dataChanged: this.dataChanged,
+			beforeUpdate: this.beforeUpdate, 
+			afterUpdate: this.afterUpdate,
 		});
 
 		this.isScrolling 				= false;
 	    this.scrollDirectionHorizontal  = SCROLL_DIRECTION_FIXED;
 	    this.scrollDirectionVertical	= SCROLL_DIRECTION_FIXED;
 	    this.scrollPositionChangeReason = '';
-		
+		this.columnsInitialized			= false;
 	    
 	    // Invokes onSectionRendered callback only when start/stop row or column indices change
 	    this._onGridRenderedMemoizer 	= createCallbackMemoizer()
@@ -876,23 +877,25 @@ class Grid extends Component {
 	    this._updateScrollLeftForScrollToColumn 		= this._updateScrollLeftForScrollToColumn.bind(this);
 	    this._updateScrollTopForScrollToRow 			= this._updateScrollTopForScrollToRow.bind(this);
 
-	    this._columnWidthGetter 						= this._wrapSizeGetter(data.columnWidth);
-	    this._rowHeightGetter 							= this._wrapSizeGetter(data.rowHeight);
+	    //this._columnWidthGetter 						= this._wrapSizeGetter(data.columnWidth);
+	    //this._rowHeightGetter 							= this._wrapSizeGetter(data.rowHeight);
 
-	    this._columnSizeAndPositionManager 	= new ScalingCellSizeAndPositionManager(
-												data.columnCount,
-												(index) => this._columnWidthGetter(index),
-												this._getEstimatedColumnSize(data)
-											);
-
-	    this._rowSizeAndPositionManager 	= new ScalingCellSizeAndPositionManager(
-												data.rowCount,
-												(index) => this._rowHeightGetter(index),
-												this._getEstimatedRowSize(data)
-											);
+	    //this._columnSizeAndPositionManager 	= new ScalingCellSizeAndPositionManager(
+		//										data.columnCount,
+		//										(index) => this._columnWidthGetter(index),
+		//										this._getEstimatedColumnSize(data)
+		//									);
+//
+//	    //this._rowSizeAndPositionManager 	= new ScalingCellSizeAndPositionManager(
+//		//										data.rowCount,
+//		//										(index) => this._rowHeightGetter(index),
+//		//										this._getEstimatedRowSize(data)
+		//									);
 
 	    // See defaultCellRangeRenderer() for more information on the usage of this cache
 	    this._cellCache	= {};
+
+	    //this._refresh( );
 	}
 
 	/**
@@ -928,7 +931,7 @@ class Grid extends Component {
 	 */
 	
 	afterMount( ) {
-	    const { scrollLeft, scrollToColumn, scrollTop, scrollToRow } = this._data;
+	    const { columnCount, scrollLeft, scrollToColumn, scrollTop, scrollToRow } = this._data;
 
 	    // If this component was first rendered server-side, scrollbar size will be undefined.
 	    // In that event we need to remeasure.
@@ -936,18 +939,21 @@ class Grid extends Component {
 	    if( !this._scrollbarSizeMeasured ) {
 	      	this._scrollbarSize = getScrollbarSize();
 	      	this._scrollbarSizeMeasured = true;
-	      	this._refresh( );
+	      	this._refresh( true );
 	    }
 
 	    if( this.scrollLeft >= 0 || this.scrollTop >= 0) {
 	      	this._setScrollPosition( scrollLeft, scrollTop );
 	    }
 
-	    if( scrollToColumn >= 0 || scrollToRow >= 0 ) {
-	      	this._updateScrollLeftForScrollToColumn( );
-	      	this._updateScrollTopForScrollToRow( );
-	    }
+	    if( columnCount ) {
 
+		    if( scrollToColumn >= 0 || scrollToRow >= 0 ) {
+		      	this._updateScrollLeftForScrollToColumn( );
+		      	this._updateScrollTopForScrollToRow( );
+		    }
+		}
+	    
 	    // Update onRowsRendered callback
 	    this._invokeOnGridRenderedHelper( );
 
@@ -964,7 +970,57 @@ class Grid extends Component {
 	 * 1) New scroll-to-cell props have been set
 	 */
 	
-  	dataChanged( prevData ) {
+	beforeUpdate( _, nextData ) {
+
+		if( nextData.columnCount === 0 && nextData.scrollLeft !== 0 || nextData.rowCount === 0 && nextData.scrollTop !== 0 ) {
+			this._setScrollPosition(0,0)
+		}
+		else if ( nextData.scrollLeft !== this._data.scrollLeft || nextData.scrollTop !== this._data.scrollTop ) {
+			//this._setScrollPosition( nextData.scrollLeft, nextData.scrollTop );
+		}
+
+		this._columnWidthGetter = this._wrapSizeGetter(nextData.columnWidth)
+		this._rowHeightGetter   = this._wrapSizeGetter(nextData.rowHeight)
+
+		this._columnSizeAndPositionManager.configure(
+			nextData.columnCount,
+			this._getEstimatedColumnSize(nextData)
+		);
+
+		this._rowSizeAndPositionManager.configure(
+			nextData.rowCount,
+			this._getEstimatedRowSize(nextData)
+		);
+
+		// Update scroll offsets if the size or number of cells have changed, invalidating the previous value
+		calculateSizeAndPositionDataAndUpdateScrollOffset({
+		  	cellCount: this._data.columnCount,
+		  	cellSize: this._data.columnWidth,
+		  	computeMetadataCallback: () => this._columnSizeAndPositionManager.resetCell(0),
+		  	computeMetadataCallbackProps: this._data,
+		  	nextCellsCount: nextData.columnCount,
+		  	nextCellSize: nextData.columnWidth,
+		  	nextScrollToIndex: nextData.scrollToColumn,
+		  	scrollToIndex: this._data.scrollToColumn,
+		  	updateScrollOffsetForScrollToIndex: () => this._updateScrollLeftForScrollToColumn(nextData)
+		});
+
+		calculateSizeAndPositionDataAndUpdateScrollOffset({
+			cellCount: this._data.rowCount,
+			cellSize: this._data.rowHeight,
+			computeMetadataCallback: () => this._rowSizeAndPositionManager.resetCell(0),
+			computeMetadataCallbackProps: this._data,
+			nextCellsCount: nextData.rowCount,
+			nextCellSize: nextData.rowHeight,
+			nextScrollToIndex: nextData.scrollToRow,
+			scrollToIndex: this._data.scrollToRow,
+			updateScrollOffsetForScrollToIndex: () => this._updateScrollTopForScrollToRow(nextState)
+		})
+
+		this._calculateChildrenToRender(nextData);
+	}
+	
+  	afterUpdate( prevData ) {
 
   		const data = this._data;
 
@@ -983,60 +1039,55 @@ class Grid extends Component {
 
 		const scrollPositionChangeReason = this.scrollPositionChangeReason;
 
-		if( columnCount === 0 && scrollLeft !== 0 || rowCount === 0 && scrollTop !== 0 ) {
-		  
-		  	this._setScrollPosition( 0, 0 );
-		} 
-		else if ( scrollLeft !== prevData.scrollLeft || scrollTop !== prevData.scrollTop ) {
-		   	this._setScrollPosition( scrollLeft, scrollTop );
-		}
-
-		this._columnWidthGetter	= this._wrapSizeGetter(columnWidth);
-		this._rowHeightGetter 	= this._wrapSizeGetter(rowHeight);
-
-		if( prevData.columnCount!=columnCount ) {
-			this._columnSizeAndPositionManager.configure(columnCount,this._getEstimatedColumnSize(data));
-		}
-
-		if( prevData.rowCount!=rowCount ) {
-			this._rowSizeAndPositionManager.configure(rowCount,this._getEstimatedRowSize(data));
-		}
-
-		if( prevData.columnCount!=columnCount ) {
-			// Update scroll offsets if the size or number of cells have changed, invalidating the previous value
-			calculateSizeAndPositionDataAndUpdateScrollOffset({
-			  	cellCount: prevData.columnCount,
-			  	cellSize: prevData.columnWidth,
-			  	computeMetadataCallback: () => this._columnSizeAndPositionManager.resetCell(0),
-			  	computeMetadataCallbackProps: data,
-			  	nextCellsCount: data.columnCount,
-			  	nextCellSize: data.columnWidth,
-			  	nextScrollToIndex: data.scrollToColumn,
-			  	scrollToIndex: prevData.scrollToColumn,
-			  	updateScrollOffsetForScrollToIndex: () => this._updateScrollLeftForScrollToColumn(data)
-			});
-		}
-
-		if( prevData.rowCount!=rowCount ) {
-			calculateSizeAndPositionDataAndUpdateScrollOffset({
-			  	cellCount: prevData.rowCount,
-			  	cellSize: prevData.rowHeight,
-			  	computeMetadataCallback: () => this._rowSizeAndPositionManager.resetCell(0),
-			  	computeMetadataCallbackProps: data,
-			  	nextCellsCount: data.rowCount,
-			  	nextCellSize: data.rowHeight,
-			  	nextScrollToIndex: data.scrollToRow,
-			  	scrollToIndex: prevData.scrollToRow,
-			  	updateScrollOffsetForScrollToIndex: () => this._updateScrollTopForScrollToRow(data)
-			});
-		}
-
-		//if( prevData.columnCount!=columnCount ||
-		//	prevData.rowCount!=rowCount ) {
-		//	this._calculateChildrenToRender(data);
-		//}
-
-		this._calculateChildrenToRender( data );
+//		if( columnCount === 0 && scrollLeft !== 0 || rowCount === 0 && scrollTop !== 0 ) {
+//		   	this._setScrollPosition( 0, 0 );
+//		} 
+//		else if ( scrollLeft !== prevData.scrollLeft || scrollTop !== prevData.scrollTop ) {
+//		   	this._setScrollPosition( scrollLeft, scrollTop );
+//		}
+//
+//		this._columnWidthGetter	= this._wrapSizeGetter(columnWidth);
+//		this._rowHeightGetter 	= this._wrapSizeGetter(rowHeight);
+//
+//		if( prevData.columnCount!=columnCount ) {
+//			this._columnSizeAndPositionManager.configure(columnCount,this._getEstimatedColumnSize(data));
+//		}
+//
+//		if( prevData.rowCount!=rowCount ) {
+//			this._rowSizeAndPositionManager.configure(rowCount,this._getEstimatedRowSize(data));
+//		}
+//
+//		if( prevData.columnCount!=columnCount ) {
+//			// Update scroll offsets if the size or number of cells have changed, invalidating the previous value
+//			calculateSizeAndPositionDataAndUpdateScrollOffset({
+//			  	cellCount: prevData.columnCount,
+//			  	cellSize: prevData.columnWidth,
+//			  	computeMetadataCallback: () => this._columnSizeAndPositionManager.resetCell(0),
+//			  	computeMetadataCallbackProps: data,
+//			  	nextCellsCount: data.columnCount,
+//			  	nextCellSize: data.columnWidth,
+//			  	nextScrollToIndex: data.scrollToColumn,
+//			  	scrollToIndex: prevData.scrollToColumn,
+//			  	updateScrollOffsetForScrollToIndex: () => this._updateScrollLeftForScrollToColumn(data)
+//			});
+//		}
+//
+//		if( prevData.rowCount!=rowCount ) {
+//			calculateSizeAndPositionDataAndUpdateScrollOffset({
+//			  	cellCount: prevData.rowCount,
+//			  	cellSize: prevData.rowHeight,
+//			  	computeMetadataCallback: () => this._rowSizeAndPositionManager.resetCell(0),
+//			  	computeMetadataCallbackProps: data,
+//			  	nextCellsCount: data.rowCount,
+//			  	nextCellSize: data.rowHeight,
+//			  	nextScrollToIndex: data.scrollToRow,
+//			  	scrollToIndex: prevData.scrollToRow,
+//			  	updateScrollOffsetForScrollToIndex: () => this._updateScrollTopForScrollToRow(data)
+//			});
+//		}
+//
+//
+//		this._calculateChildrenToRender( data );
 		
 		// Handle edge case where column or row count has only just increased over 0.
 		// In this case we may have to restore a previously-specified scroll offset.
@@ -1132,7 +1183,22 @@ class Grid extends Component {
 			this._scrollbarSizeMeasured = true;
 		}
 
-		//this._calculateChildrenToRender( this._data );
+		this._columnSizeAndPositionManager 	= new ScalingCellSizeAndPositionManager(
+												this._data.columnCount,
+												(index) => this._columnWidthGetter(index),
+												this._getEstimatedColumnSize(this._data)
+											);
+
+	    this._rowSizeAndPositionManager 	= new ScalingCellSizeAndPositionManager(
+												this._data.rowCount,
+												(index) => this._rowHeightGetter(index),
+												this._getEstimatedRowSize(this._data)
+											);
+
+	    this._columnWidthGetter 	= this._wrapSizeGetter(this._data.columnWidth);
+	    this._rowHeightGetter 		= this._wrapSizeGetter(this._data.rowHeight);
+
+		this._calculateChildrenToRender( this._data );
 	}
 
 	beforeUnmount() {
@@ -1157,11 +1223,11 @@ class Grid extends Component {
 			noContentRenderer,
 			style,
 			tabIndex,
-			width
+			width,
 			} = this._data;
 
 		const isScrolling = this.isScrolling;
-
+		
 		const gridStyle = {
 			boxSizing: 'border-box',
 			height: autoHeight ? 'auto' : height,
@@ -1242,13 +1308,10 @@ class Grid extends Component {
 			scrollLeft,
 			scrollTop,
 			width,
+			_isScrolling: isScrolling,
+			_scrollDirectionHorizontal: scrollDirectionHorizontal,
+			_scrollDirectionVertical: scrollDirectionVertical
 		} = props;
-
-		const {
-			isScrolling,
-			scrollDirectionHorizontal,
-			scrollDirectionVertical,
-		} = this;
 
 		this._childrenToDisplay = [];
 
@@ -1386,21 +1449,21 @@ class Grid extends Component {
 
 	_setScrollPosition ( scrollLeft, scrollTop ) {
 
-		const newState = {
+		let refresh = false;
+
+		if (scrollLeft >= 0 && this._data.scrollLeft != scrollLeft ) {
+			this._data.scrollLeft = scrollLeft;
+			refresh = true;
 		}
 
-		if (scrollLeft >= 0) {
-			newState.scrollLeft = scrollLeft;
+		if (scrollTop >= 0 && scrollTop !== this.scrollTop ) {
+			this._data.scrollTop = scrollTop
+			refresh = true;
 		}
 
-		if (scrollTop >= 0) {
-			newState.scrollTop = scrollTop
-		}
-
-		if ( scrollLeft >= 0 && scrollLeft !== this.scrollLeft ||
-			 scrollTop >= 0 && scrollTop !== this.scrollTop ) {
-			//this.scrollPositionChangeReason = SCROLL_POSITION_CHANGE_REASONS.REQUESTED;
-			this.updateData( newState );
+		if ( refresh ) {
+			this._calculateChildrenToRender( this._data );
+			this._refresh( );
 		}
 	}
 
@@ -1479,10 +1542,11 @@ class Grid extends Component {
 			this.scrollDirectionVertical = scrollDirectionVertical;
 			this.scrollPositionChangeReason = SCROLL_POSITION_CHANGE_REASONS.OBSERVED;
 				
-			this.updateData({
-				scrollLeft,
-				scrollTop
-			});
+			this._data.scrollLeft = scrollLeft;
+			this._data.scrollTop  = scrollTop;
+
+			this._calculateChildrenToRender( this._data );
+			this._refresh( );
 		}
 
 		this._invokeOnScrollMemoizer( scrollLeft, scrollTop, totalColumnsWidth, totalRowsHeight );

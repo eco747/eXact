@@ -69,7 +69,7 @@ window.onload = function( ) {
 			data.cellRenderer   	= this._cellRenderer.bind(this);
 			data.columnWidth 		= this._getColumnWidth.bind(this);
 	
-			this.Refresh( );			
+			//this.Refresh( );			
 		}
 
 		_cellRenderer( {columnIndex, key, rowIndex, style} ) {

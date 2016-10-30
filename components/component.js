@@ -207,6 +207,11 @@
 				
 				let name = data[p];
 
+				// elements starting with an underscore are hidden from other objects
+				if( name[0]=='_' ) {
+					continue;
+				}
+
 				if( this._watched && this._watched[name] ) {
 					continue;
 				}
@@ -253,8 +258,11 @@
 		 * fire a refresh on the object
 		 */
 		
-		_refresh( ) {
-			if( this._.isMounted() ) {
+		_refresh( force ) {
+			if( force ) {
+				this._.forceUpdate( );
+			}
+			else {
 				this._.setState( this._data );
 			}
 		}
