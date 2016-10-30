@@ -56,20 +56,20 @@ window.onload = function( ) {
 
 		    this._datum = generateRandomList( );
 
-		    this.updateData( {
-		    	columnCount: 20,
-				width: 2560,
-				height: 650,
-				overscanColumnCount: 0,
-				overscanRowCount: 3,
-				rowHeight: 40,
-				rowCount: 1000,
-				useDynamicRowHeight: false,
-				cellRenderer: this._cellRenderer.bind(this),
-				columnWidth: this._getColumnWidth.bind(this),
-			});
+		    let data = this._data;
 
-			
+		    data.columnCount 		= 20;
+			data.width 				= 2560;
+			data.height 			= 650;
+			data.overscanColumnCount = 0;
+			data.overscanRowCount 	= 3;
+			data.rowHeight 			= 40;
+			data.rowCount 			= 1000;
+			data.useDynamicRowHeight= false;
+			data.cellRenderer   	= this._cellRenderer.bind(this);
+			data.columnWidth 		= this._getColumnWidth.bind(this);
+	
+			this.Refresh( );			
 		}
 
 		_cellRenderer( {columnIndex, key, rowIndex, style} ) {
@@ -166,15 +166,15 @@ window.onload = function( ) {
 
 			let 	b2 		= new BottomNavigationItem( 'BlueTooth', 'fa@bluetooth' );
 			
-			this.botbar._buttons = [
+			this.botbar.buttons = [
 				b1, b2
 			];
 
 			this.grid		= new GridSample( );
 
-			this.startTimer( 1000, true, function() {
+			setInterval( function() {
 				b1.text = new Date().toLocaleString();
-			} );
+			}, 1000 );
 		}
 
 		onRender( ) {

@@ -10,15 +10,15 @@ class Icon extends Component
 
 		this.re_glyph = /(\w+)\@([\w_-]+)/;
 
-		this.data = {
+		this.setDataModel( {
 			glyph: glyph,		
 			size: size
-		};
+		} );
 	}
 
 	onRender( ) {
 	
-		let glyph = this.glyph,	
+		let { glyph, size } = this._data,	
 			cls;
 
 		if( !glyph ) debugger;
@@ -35,7 +35,7 @@ class Icon extends Component
 			tag: 'i',
 			cls: cls,
 			style: {
-				fontSize: this.data.size,
+				fontSize: size,
 			}
 		}
 	}

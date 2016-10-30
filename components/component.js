@@ -28,17 +28,10 @@
 			this._.__debug 	= this.constructor.name;				
 			this._.render 	= ( ) => {return this._render( );};
 
-			this.clsName	= 'x-' + kebabCase(this.constructor.name);
-			this.change_id 	= 0;
+			this._clsName	= 'x-' + kebabCase(this.constructor.name);
 
-			this.data 		= {};
-			this.events 	= {};
-			this.states 	= {};
-
-			this._dataChanged = null;
-	
-			this._proxy 	= this._selfWatch( );
-			return this._proxy;
+			this._data 		= null;		// real data
+			this._watched 	= null;		// generated properties
 		}
 
 		/**
@@ -55,7 +48,7 @@
 
 			var props = {},
 				items = [],
-				cls   = lvl==0 ? this.clsName : '',
+				cls   = lvl==0 ? this._clsName : '',
 				i, t, tag;
 
 			// first: the tag
@@ -68,11 +61,6 @@
 				cls += ' ' + desc.cls;
 			}
 			
-			// add states to the class
-			for( i in this.states ) {
-				cls += ' x-state-' + kebabCase(i);
-			}
-
 			props.className = cls;
 
 			// next attributes
@@ -126,7 +114,7 @@
 			if( lvl==0 && this.events ) {
 				t = this.events;
 				for( i in t ) {
-					props[i] = t[i].bind(this._proxy);
+					props[i] = t[i].bind(this);
 				}
 			}
 
@@ -143,64 +131,42 @@
 
 		on( events ) {
 
-			let 	i, n;
-			for( i in events ) {
-
-				if( i=='dataChanged' ) {
-					this._dataChanged = events[i].bind( this._proxy );
+			for( let i in events ) {
+			
+				let n = event_map[i];
+				if( n ) {
+					this._[n] = events[i].bind( this );
 				}
-				else {
-					n = event_map[i];
-					if( n ) {
-						this._[n] = events[i].bind( this._proxy );
+			}
+		}
+
+		/**
+		 * 
+		 */
+		
+		setDataModel( model ) {
+			
+			// remove old generated properties
+			if( this._data ) {
+				
+				let watched = Object.keys( this._watched ),
+					p;
+
+				for( p in watched ) {
+					if( !model.hasOwnProperty(p) ) {
+						delete this[p];
+						delete this._watched[p];
 					}
 				}
 			}
+
+			this._data = model;
+			this._genProperties( );
+			this._dataChanged( );
 		}
 
-		/**
-		 * change the component state
-		 */
-		
-		setState( name, set=true ) {
-
-			let states = this.states;
-
-			if( set && !(name in states) ) {
-				states[name] = true;
-				this._refresh( );
-			}
-			else if( !set && (name in states) ) {
-				delete states[name];
-				this._refresh( );
-			}
-		}
-
-		/**
-		 * start a timer 
-		 * @param  {Number} ms repeat time in 
-		 * @param {Boolean}	repeat true for an interval timer
-		 * @param  {Function} fn function to call (automatically binded to this)
-		 * @return {Number}   the timer id
-		 * @cf stopTimer
-		 */
-		
-		startTimer( ms, repeat, fn ) {
-			if( repeat ) {
-				return  {i:setInterval( fn.bind(this._proxy), ms ), r:true };
-			}
-			else {
-				return  {i:setTimeout( fn.bind(this._proxy), ms ), r:false };
-			}
-		}
-
-		/**
-		 * stop the timer
-		 * @param  {Number} id timer id created with onTimer
-		 */
-		
-		stopTimer( id ) {
-			(id.r==false ? clearTimeout : clearInterval)( id.i );
+		Refresh( ) {
+			this._refresh( );
 		}
 
 		/**
@@ -223,195 +189,65 @@
 		 */
 		
 		_render( ) {
-			return this.emit( this.onRender.call( this._proxy ) );
+			return this.emit( this.onRender.call( this ) );
 		}
 		
 		/**
-		 * auto watch myself 
-		 * if you try to change or get a value not in this object
-		 * try to find in in the data object.
-		 * if data itself is changed, re-watch data, then fire an update
-		 * __self__ is added as (virtual) property to get the real *this*
+		 * define all properies of data as direct properties
 		 */
 		
-		_selfWatch( target ) {
-
-			let self = this;
-			return new Proxy( this, {
-
-				get: function( me, name ) {
-
-					if( name in me ) {
-						return me[name];
-					}
-
-					if( name==='__self__' ) {
-						return self;
-					}
-
-					if( name in me.data ) {
-						return me.data[name];
-					}
-
-					console.log( 'unknown property ' + name ); 
-				},
+		_genProperties( target ) {
 			
-				set: function( me, name, value ) {
+			let data = Object.keys( this._data ),
+				me = this, 
+				watched = {},
+				p;
 
-					let data = me.data;
+			for( p in data ) {
+				
+				let name = data[p];
 
-					if( name in me ) {
-
-						// if trying to change the whole data object						
-						if( name=='data' ) {
-							// any change ?
-							if( !shallowEqual(value,data) ) {
-								
-								let odata = self._dataChanged ? cloneObject( data ) : null;
-								me.data = value;
-								self._watchDatas( );
-
-								// fire a dataChanged
-								if( self._dataChanged ) {
-									self._dataChanged.call( self, odata, me.data );
-								}
-
-								self._refresh( );
-							}
-						}
-						else {
-							me[name] = value;
-						}
-					}
-					//	trying to change a data element
-					else if( name in data ) {
-						
-						let odata = self._dataChanged ? cloneObject(data) : null;
-						me.data[name] = value;
-						
-						// fire a dataChanged
-						if( self._dataChanged ) {
-							self._dataChanged.call( self, odata, me.data );
-						}
-
-						self._refresh( );
-					}
-					else {
-						me[name] = value;
-					}
-
-					return true;
+				if( this._watched && this._watched[name] ) {
+					continue;
 				}
-			});
-		}
 
-		/**
-		 * 
-		 */
-		
-		updateData( newdata ) {
-
-			let data  = this.data.__self__,
-				odata = null,
-				ref = false,
-				i;
-
-			for( i in newdata ) {
-
-				if( newdata.hasOwnProperty(i) && data.hasOwnProperty(i) ) {
-					
-					if( data[i] !== newdata[i] ) {
-						if( !odata ) {
-							odata = cloneObject(data);
+				if( this.hasOwnProperty(name) ) {
+					console.log( 'property name confict on: ' + name );
+				}
+				else {	
+					Object.defineProperty( this, name, {
+						get: function( ) { 
+							return me._data[name];
+						},
+						set: function(value ) {
+							me._setDataValue( name, value );
 						}
+					});
 
-						data[i]  = newdata[i];
-					}
+					watched[name] = true;
 				}
 			}
 
-			if( odata ) {
-				if( this._dataChanged ) {
-					this._dataChanged( odata, data );
-				}
+			this._watched = watched;
+		}
 
-				this._refresh( );
+		_setDataValue( name, value ) {
+
+			let 	data = this._data;
+
+			if( !data.hasOwnProperty(name) ) {
+				throw 'Unknown data property ' + name;
 			}
+
+			if( data[name] !== value ) {
+				data[name] = value;
+				this._dataChanged( );
+			}	
 		}
 
-		/**
-		 * watch the 'data' object for any change
-		 * in case of change, fire a refresh
-		 * disallow data structure modification
-		 */
-		
-		_watchDatas( ) {
-
-			let self = this;
-			let ndata = new Proxy( this.data, {
-				
-				get: function( data, name ) {
-
-					if( name==='__self__' ) {
-						return data;
-					}
-					
-					if( data[name] ) {
-						return data[name];
-					}
-				},
-			
-				set: function( data, name, value ) {
-					if( !data.hasOwnProperty(name) ) {
-						return false;
-					}
-
-					if( data[name] !== value ) {
-						let odata = self._dataChanged ? cloneObject(data) : null;
-						data[name] = value;
-						if( self._dataChanged ) {
-							self._dataChanged.call( self, odata, data );
-						}
-
-						self._refresh( );
-					}
-
-					return true;
-				}
-			});
-
-			this.data = ndata;
+		_dataChanged( ) {
+			this._refresh( );
 		}
-
-		/**
-		 * watch the watchers
-		 */
-		
-		_watchWatchers( ) {
-
-			let self = this;
-			let ndata = new Proxy( this.data, {
-				
-				get: function( data, name ) {
-					if( data[name] ) {
-						return data[name];
-					}
-				},
-			
-				set: function( data, name, value ) {
-					if( !data.hasOwnProperty(name) ) {
-						return false;
-					}
-
-					data[name] = value;
-					self._refresh( );
-					return true;
-				}
-			});
-
-			this.data = ndata;
-		}
-
 
 		/**
 		 * fire a refresh on the object
@@ -419,7 +255,7 @@
 		
 		_refresh( ) {
 			if( this._.isMounted() ) {
-				this._.setState( {c:this.change_id++} );
+				this._.setState( this._data );
 			}
 		}
 

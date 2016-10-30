@@ -658,7 +658,7 @@ class Grid extends Component {
 	constructor( ) {
 		super( );
 
-		this.data = {
+		this.setDataModel({
 
 			/**
      		 * Set the width of the inner scrollable container to 'auto'.
@@ -848,7 +848,7 @@ class Grid extends Component {
 			 * {Number}
 			 */
 			width: 100
-		};
+		});
 
 		this.on( {
 			beforeMount: this.beforeMount,
@@ -858,7 +858,6 @@ class Grid extends Component {
 		});
 
 		this.isScrolling 				= false;
-
 	    this.scrollDirectionHorizontal  = SCROLL_DIRECTION_FIXED;
 	    this.scrollDirectionVertical	= SCROLL_DIRECTION_FIXED;
 	    this.scrollPositionChangeReason = '';
@@ -868,7 +867,7 @@ class Grid extends Component {
 	    this._onGridRenderedMemoizer 	= createCallbackMemoizer()
 	    this._onScrollMemoizer 			= createCallbackMemoizer(false)
 
-	    let data = this.data.__self__;
+	    let data = this._data;
 
 	    // Bind functions to instance so they don't lose context when passed around
 	    this._enablePointerEventsAfterDelayCallback 	= this._enablePointerEventsAfterDelayCallback.bind(this);
@@ -929,7 +928,7 @@ class Grid extends Component {
 	 */
 	
 	afterMount( ) {
-	    const { scrollLeft, scrollToColumn, scrollTop, scrollToRow } = this.data.__self__;
+	    const { scrollLeft, scrollToColumn, scrollTop, scrollToRow } = this._data;
 
 	    // If this component was first rendered server-side, scrollbar size will be undefined.
 	    // In that event we need to remeasure.
@@ -967,7 +966,7 @@ class Grid extends Component {
 	
   	dataChanged( prevData ) {
 
-  		const data = this.data.__self__;
+  		const data = this._data;
 
 		const { autoHeight, 
 				columnCount, 
@@ -1083,7 +1082,7 @@ class Grid extends Component {
 			scrollToIndex: scrollToColumn,
 			size: width,
 			updateScrollIndexCallback: (scrollToColumn) => {
-				this._updateScrollLeftForScrollToColumn( this.data, scrollToColumn );
+				this._updateScrollLeftForScrollToColumn( this._data, scrollToColumn );
 			}
 		});
 
@@ -1099,7 +1098,7 @@ class Grid extends Component {
 			scrollToIndex: scrollToRow,
 			size: height,
 			updateScrollIndexCallback: (scrollToRow) => {
-				this._updateScrollTopForScrollToRow( this.data, scrollToRow );
+				this._updateScrollTopForScrollToRow( this._data, scrollToRow );
 			}
 		});
 
@@ -1133,7 +1132,7 @@ class Grid extends Component {
 			this._scrollbarSizeMeasured = true;
 		}
 
-		//this._calculateChildrenToRender( this.data.__self__ );
+		//this._calculateChildrenToRender( this._data );
 	}
 
 	beforeUnmount() {
@@ -1159,7 +1158,7 @@ class Grid extends Component {
 			style,
 			tabIndex,
 			width
-			} = this.data.__self__;
+			} = this._data;
 
 		const isScrolling = this.isScrolling;
 
@@ -1231,7 +1230,7 @@ class Grid extends Component {
 
 	/* ---------------------------- Helper methods ---------------------------- */
 
-	_calculateChildrenToRender( props = this.data.__self__ ) {
+	_calculateChildrenToRender( props = this._data ) {
 		const {
 			cellRenderer,
 			cellRangeRenderer,
@@ -1313,7 +1312,7 @@ class Grid extends Component {
 	*/
 	_enablePointerEventsAfterDelay () {
 
-		const { scrollingResetTimeInterval } = this.data;
+		const { scrollingResetTimeInterval } = this._data;
 
 		if (this._disablePointerEventsTimeoutId) {
 			clearTimeout(this._disablePointerEventsTimeoutId);
@@ -1346,7 +1345,7 @@ class Grid extends Component {
 
 	_invokeOnGridRenderedHelper () {
 	
-		const { onSectionRendered } = this.data;
+		const { onSectionRendered } = this._data;
 
 		this._onGridRenderedMemoizer({
 			callback: onSectionRendered,
@@ -1366,7 +1365,7 @@ class Grid extends Component {
 	_invokeOnScrollMemoizer( scrollLeft, scrollTop, totalColumnsWidth, totalRowsHeight ) {
 		this._onScrollMemoizer({
 			callback: ({ scrollLeft, scrollTop }) => {
-				const { height, onScroll, width } = this.data.__self__;
+				const { height, onScroll, width } = this._data;
 
 				onScroll({
 					clientHeight: height,
@@ -1415,7 +1414,7 @@ class Grid extends Component {
 
 	_updateScrollLeftForScrollToColumn( props, scrollToColumn=0 ) {
 		
-		props = props || this.data.__self__;
+		props = props || this._data;
 		const { columnCount, scrollLeft, scrollToAlignment, width } = props
 		
 		if (scrollToColumn >= 0 && columnCount > 0) {
@@ -1431,7 +1430,7 @@ class Grid extends Component {
 
 	_updateScrollTopForScrollToRow( props, scrollToRow=0 ) {
 		
-		props = props || this.data.__self__;
+		props = props || this._data;
 		const { height, rowCount, scrollTop, scrollToAlignment } = props
 		
 		if (scrollToRow >= 0 && rowCount > 0) {
@@ -1459,7 +1458,7 @@ class Grid extends Component {
 		// Gradually converging on a scrollTop that is within the bounds of the new, smaller height.
 		// This causes a series of rapid renders that is slow for long lists.
 		// We can avoid that by doing some simple bounds checking to ensure that scrollTop never exceeds the total height.
-		const { height, width } = this.data;
+		const { height, width } = this._data;
 		const scrollbarSize = this._scrollbarSize
 		const totalRowsHeight = this._rowSizeAndPositionManager.getTotalSize()
 		const totalColumnsWidth = this._columnSizeAndPositionManager.getTotalSize()

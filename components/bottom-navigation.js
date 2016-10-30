@@ -9,9 +9,10 @@ class BottomNavigationItem extends Component
 		super( );
 
 		this.icon = new Icon( ...icon );
-		this.data = {
-			text: text || ' '
-		};
+		this.setDataModel({
+			text: text || ' ',
+			hover: false
+		});
 
 		this.events = {
 			onmouseenter: this.onMouseEnter,
@@ -21,22 +22,23 @@ class BottomNavigationItem extends Component
 
 	onRender( ) {
 		return {
+			cls: this._data.hover ? 'x-hover' : '',
 			items: [
 				this.icon,
 				{
 					cls: ' x-text',
-					content: this.text
+					content: this._data.text
 				}
 			]
 		}
 	}
 
 	onMouseEnter( e ) {
-		this.setState( 'hover' );
+		this.hover = true;
 	}
 
 	onMouseLeave( e ) {
-		this.setState( 'hover', false );
+		this.hover = false;
 	}
 }
 
@@ -49,14 +51,14 @@ class BottomNavigation extends Component
 	constructor( cfg ) {
 		super( cfg );
 
-		this.data = {
-			_buttons: []		
-		};
+		this.setDataModel({
+			buttons: []		
+		});
 	}
 
 	onRender( ) {
 		return {
-			items: this.data._buttons
+			items: this._data.buttons
 		}
 	}
 }

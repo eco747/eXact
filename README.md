@@ -1,9 +1,10 @@
 # eXact
 **eXact** is a Javascript Application Framework.  
 **eXact** is a bridge between [ ExtJs ](www.sencha.com) the great framework that is saddly sooo expensive and [ React ](www.react.org) that is sooo different in the way we build application.
+**eXact** is really small 44K zipped with this readme and licence file.
 
-Care, **eXact** only works on modern browsers, forget IE6.  
-**eXact** is really small 140K unpacked with this readme and licence file.
+Care, **eXact** only works on modern browsers that can interpret ES6 javascript syntax, forget IE6.
+
 
 ## Concept
 

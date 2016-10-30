@@ -7,9 +7,9 @@ class AppBar extends Component
 	constructor( title, ...icon ) {
 		super( );
 
-		this.data = {
+		this.setDataModel( {
 			title: title || ' ',		// title shown
-		};
+		} );
 
 		this.icon	= new Icon( ...icon );
 	}
