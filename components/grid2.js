@@ -1,86 +1,6 @@
 (function($$) {
 
 
-	class 	DataReader
-	{
-		constructor( { model } ) {
-			this._model = model;
-		}
-
-		readRecords( data ) {
-		}
-	}
-
-	class 	JsonReader extends DataReader
-	{
-		readRecords( raw ) {
-
-			let records = [];
-
-			if( isString(raw) ) {
-				raw = JSON.parse( raw );
-			}
-
-			if( isArray(raw) ) {
-
-				let len = raw.length,
-					i;
-
-				for( i=0; i<len; i++ ) {
-					records.push( this._model.convert( raw[i] ) );
-				}
-			}
-
-			return records;
-		}
-	}
-
-	/**
-	 *
-	 */
-
-	class 	DataStore 
-	{
-		constructor( {model, reader} ) {
-			
-			this._model  = model;
-			this._data   = null;
-
-			if( isString(reader) ) {
-				switch( reader ) {
-					case 'json':
-						reader = new JsonReader( {model:mode} );
-						break;
-					default:
-						throw 'Unknown DataReader type: ' + reader;
-				}
-			}
-
-			this._reader = reader;
-			
-		}
-
-		load( data ) {
-			this._data 	= this._reader.readRecords(data);
-		}
-
-		getCount( ) {
-			return this._data ? this._data.length : 0;
-		}
-
-		getAt( index ) {
-			if( !this._data ) {
-				return;
-			}
-
-			if( index<0 || index>=this.data.length ) {
-				return;
-			}
-
-			return new this._data[index];
-		}
-	}
-
 	/**
 	 *
 	 */
@@ -88,6 +8,65 @@
 	class 	Row extends Component
 	{
 
+		constructor( columns, store ) {
+			super( );
+
+			this.setDataModel({
+				top: 0,
+				height: 0,
+				index: 0,
+			});
+
+			this.store = store;
+			this.columns = columns;
+		}
+
+
+		render( ) {
+
+			let { top, height, index } = this._data;
+
+			let cells = [],
+				rec = this.store.getAt( index ),
+				cols = this.columns,
+				len = cols.length,
+				model = this.store.model;
+
+			if( rec ) {
+				for( let c=0; c<len; c++ ) {
+
+					let col = cols[c],
+						style = { };
+
+					if( col.width!==0 && col.width!==undefined) {
+						style.width = col.width;
+					}
+					else {
+						style.flexGrow = col.flex ? col.flex : 1;
+					}
+
+					let cell = {
+						cls: 'x-cell',
+						style: style,
+						content: model._get(col.index,rec)	
+					};
+
+					cells.push( cell );
+				}
+			}
+
+			return {
+				cls: (index%2)==0 ? 'x-odd' : '',
+					
+				style: {
+					position: 'absolute',
+					top: top,
+					height: height,
+					width: '100%',
+				},
+				items: cells
+			}
+		}
 	}
 
 	/**
@@ -96,22 +75,54 @@
 
 	class 	Header extends Row
 	{
-		constructor( ) {
+		constructor( columns ) {
 			super( );
 
 			this.setDataModel({
-				height: 24
+				scrollLeft: 0,
+				totalWidth: 0,
 			});
+
+			this.columns = columns;
 		}
 
 		render( ) {
 
-			const { height } = this._data;
+			let items = [],
+				cols = this.columns,
+				len = cols.length,
+				main_style;
+
+			for( let c=0; c<len; c++ ) {
+
+				let col = cols[c],
+					style = { };
+
+				if( col.width!==0 && col.width!==undefined) {
+					style.width = col.width;
+				}
+				else {
+					style.flexGrow = col.flex ? col.flex : 1;
+				}
+
+				let itm = {
+					cls: 'x-cell',
+					style: style,
+					content: cols[c].title || ''
+				};
+
+				items.push( itm );
+			}
+
+			main_style = {
+				left: -this._data.scrollLeft,
+				position: 'relative',
+				width: this._data.totalWidth,
+			};
 
 			return {
-				style: {
-					height: height,
-				}
+				style: main_style,
+				items: items
 			}
 		}
 	}
@@ -127,18 +138,22 @@
 
 			this.setDataModel({
 				totalWidth: 0,
-				totalHeight: 0
+				totalHeight: 0,
+				renderContent: emptyFn
 			});
 		}		
 
 		render( ) {
 			const {totalWidth,totalHeight} = this._data;
-
+			
 			return {
+
 				style: {
 					width: totalWidth,
-					height: totalHeight
-				}
+					height: totalHeight,
+					position: 'relative',
+				},
+				items: this._data.renderContent( )
 			}
 		}
 	}
@@ -151,17 +166,32 @@
 	{
 		constructor( content ) {
 			super( );
+
+			this.setDataModel({
+				onScroll: emptyFn
+			});
 			
 			this.content = content;
+			this._dom 	 = null;
+		}
+
+		acquireRef( dom ) {
+			this._dom = dom;  
+			if( this.content ) {
+				this.content._refresh( );
+			}
 		}
 
 		render( ) {
 
 			return {
+				ref: this.acquireRef.bind(this),
 				style: {
 					overflow: 'auto'
 				},
-				items: this.content
+				
+				onscroll: 	this._data.onScroll,
+				items: 		this.content
 			};
 		}
 	}
@@ -173,32 +203,204 @@
 
 	class 	Grid extends Component
 	{
-		constructor( ) {
+		constructor( {store, columns } ) {
 			super( );
 
 			this.setDataModel({
-
-				/**
-				 *
-				 */
-
-				columns: [],
-
-				/**
-				 *
-				 */
-
-				dataStore: null,
+				rowHeight: 30
 			});
 
-			this.header = new Header( );
-			this.content = new Container( );
-			this.viewport = new Viewport( this.content );
+			this._scrollbarSize = getScrollbarSize( );
 
-			this.content.setTotalWidth( 5000 );
-			this.content.setTotalHeight( 5000 );
+			this.content 	= new Container( );
+			this.viewport 	= new Viewport( this.content );
+			this.header 	= new Header( columns );
+			
+			this.columns 	= columns;
+			this.store 		= store;
+
+			let 	totalHeight = store.getCount( ) * this._data.rowHeight;
+
+			this.hasFlex 		= false;
+			this.totalWidth  	= this._calcHWidth( );
+			this.flexWidth 		= 0;
+
+			this.viewport.setOnScroll( this._onScroll.bind(this) );
+			this.content.setTotalHeight( totalHeight );
+			this.content.setRenderContent( this._renderRows.bind(this) );
+			
+			this.rowPool	= [];
+			this.scrollTop  = 0;
+			this.lastScrollTop = 0;
 		}
 
+		_calcHWidth( ) {
+
+			let cols = this.columns,
+				n = cols.length,
+				full = 0,
+				i;
+
+			for( i=0; i<n; i++ ) {
+				let col = cols[i];
+				
+				if( col.width ) {
+					full += col.width;
+				}
+				else {
+					this.hasFlex = true;
+
+					if( col.minWidth ) {
+						full += col.minWidth;
+					}
+				}
+			}
+
+			return full;
+		}
+
+		_onScroll( event ) {
+
+			//if ( !this.viewport.isTargetOfEvent(event) ) {
+			//	return
+			//}
+
+			let scrollLeft = event.target.scrollLeft;
+			this.header.setScrollLeft( scrollLeft );
+
+			let scrollTop = event.target.scrollTop;
+			this.scrollTop = scrollTop;
+
+			this._renderRows( );
+		}
+
+		_renderRows( ) {
+			if( !this.viewport._dom ) {
+				return null;				
+			}
+
+			let height  = this.viewport._dom.clientHeight,
+				width 	= this.viewport._dom.clientWidth,
+				i;
+
+			// update hz sizes if flex columns
+			if( this.hasFlex && this.totalWidth<width && this.flexWidth!=width ) {
+				this.header.setTotalWidth( width-this._scrollbarSize );
+				this.content.setTotalWidth( width );
+				this.flexWidth = width;
+			}
+
+			let { rowHeight } = this._data;
+
+			//	check that we have enough rows in our pool
+			let visRows	= (height / rowHeight) + 2,
+				rows 	= this.rowPool,
+				nrows 	= rows.length,
+				ndata 	= this.store.getCount( );
+
+			if( visRows>ndata ) {
+				visRows = ndata;
+			}
+
+			for( i=nrows; i<visRows; i++ ) {
+				rows.push( { up: true, top: 0, row: new Row( this.columns, this.store ) } );
+			}
+
+			//	setup rows
+			let 	scrollTop = this.scrollTop,
+					delta 	= scrollTop%rowHeight,
+					top 	= scrollTop - delta,
+					nr 		= rows.length,
+					idx 	= Math.ceil( scrollTop / rowHeight );
+
+			let 	newPool = [],
+					result = [];
+			
+			//	scrolling down
+			if( this.lastScrollTop<=scrollTop ) {
+				
+				for( i=0; i<nr; i++ ) {
+
+					let row = rows[i];
+
+					if( row.up || (row.top + rowHeight) <= scrollTop ) {
+						row.up = true;
+						newPool.push( row );
+					}
+					else {
+						newPool.unshift( row );
+					}
+
+					top 	+= rowHeight;
+				}
+
+				top = scrollTop - delta;
+
+				for( i=0; i<nr; i++ ) {
+					
+					let row = newPool[i];
+
+					if( row.up ) {
+						row.top = top;
+						row.row.setTop( top );
+						row.row.setHeight( rowHeight );
+						row.row.setIndex( idx );
+						row.up = false;
+					}
+
+					result.push( row.row );
+					top 	+= rowHeight;
+					idx++;
+				}
+
+				rows = this.rowPool = newPool;
+			}
+			//	scrolling up
+			else {
+
+				let bottom = scrollTop + height;
+
+				for( i=0; i<nr; i++ ) {
+
+					let row = rows[i];
+
+					if( row.up || row.top > bottom ) {
+						row.up = true;
+						newPool.unshift( row );
+					}
+					else {
+						newPool.push( row );
+					}
+
+					top 	+= rowHeight;
+				}
+
+				top = scrollTop - delta;
+
+				for( i=0; i<nr; i++ ) {
+					
+					let row = newPool[i];
+
+					if( row.up ) {
+						row.top = top;
+						row.row.setTop( top );
+						row.row.setHeight( rowHeight );
+						row.row.setIndex( idx );
+						row.up = false;
+					}
+
+					result.push( row.row );
+					top 	+= rowHeight;
+					idx++;
+				}
+
+				rows = this.rowPool = newPool;
+			}
+
+			this.lastScrollTop = scrollTop;
+			return result;
+		}
+		
 		render( ) {
 			return {
 				style: {
@@ -206,7 +408,8 @@
 					top: 50,
 					right: 0,
 					bottom: 70,
-					position: 'absolute'
+					position: 'absolute',
+					overflow: 'hidden',
 				},
 				items: [
 					this.header,

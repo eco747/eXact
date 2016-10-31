@@ -25,13 +25,13 @@ window.onload = function( ) {
 			]);
 
 			let model = new DataModel( {
-				fields: ['first_name', 'last_name']
+				fields: ['first_name', 'last_name', 'address']
 			});
 
-			let data = [
-				{ first_name: 'John', last_name: 'Doe' },
-				{ first_name: 'Jimmy', last_name: 'Hendrix' },
-			];
+			let data = [];
+			for( let i=0; i<10000; i++ ) {
+				data.push( { first_name: i + ' - John', last_name: 'Doe', address: i + ', rue des Alouettes' } );
+			}
 
 			let store = new DataStore( { 
 				model: model,
@@ -42,14 +42,15 @@ window.onload = function( ) {
 			this.grid		= new Grid( {
 				store: store,
 				columns: [
-					{ header: 'First name', index: 'fn' },
-					{ header: 'Last name', index: 'ln' }
+					{ title: 'First name', index: 'first_name', width: 400 },
+					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
+					{ title: 'Address',    index: 'address', flex: 2 }
 				]
 			});
 
-			setInterval( function() {
-				b1.setText( new Date().toLocaleString() );
-			}, 1000 );
+			//setInterval( function() {
+			//	b1.setText( new Date().toLocaleString() );
+			//}, 1000 );
 		}
 
 		render( ) {

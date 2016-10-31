@@ -98,6 +98,9 @@
 						if( t[i] instanceof Component ) {
 							items.push( React.createElement( t[i]._ ) );
 						}
+						else if( typeof t[i] === 'function' ) {
+							items.push( React.createElement( t[i] ) );	
+						}
 						else if( isObject(t[i]) ) {
 							items.push( this.emit(t[i],lvl+1) );
 						}
@@ -148,10 +151,6 @@
 			this._dataChanged( );
 		}
 
-		Refresh( ) {
-			this._refresh( );
-		}
-
 		/**
 		 * 	create the object to a specified element
 		 */
@@ -173,6 +172,7 @@
 		
 		_render( ) {
 			try {
+				console.log( 'rendering: ', this.constructor.name );
 				return this.emit( this.render() );
 			}
 			catch( e ) {
@@ -233,7 +233,11 @@
 		afterUpdate( changes ) {
 
 		}
-		
+
+		isTargetOfEvent( event ) {
+			return event.target==this._;
+		}
+
 		/**
 		 * define all properies of data as direct properties
 		 */
@@ -247,15 +251,14 @@
 
 			for( p in data ) {
 			
-				let name = data[p],
-					iname = name;
-
+				let iname = data[p];
+					
 				// elements starting with an underscore are hidden from other objects
-				if( name[0]=='_' ) {
+				if( iname[0]=='_' ) {
 					continue;
 				}
 
-				name = camelCase( name, true );
+				let name = camelCase( iname, true );
 				if( this._watched && this._watched[name] ) {
 					continue;
 				}
@@ -285,15 +288,7 @@
 		}
 
 		_dataChanged( ) {
-
-			if( !this._needup ) {
-				asap( () => {
-					this._needup = false;
-					this._refresh( );
-				});	
-			}
-
-			this._needup = true;
+			this._refresh( );
 		}
 
 		/**
@@ -309,10 +304,6 @@
 				this._.setState( {_:this._chg_id++} );
 			}
 		}
-
-
-		
-
 	}
 
 	$$.Component = Component;

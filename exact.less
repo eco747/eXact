@@ -88,12 +88,43 @@ body {
 	display: flex;
 	flex-direction: column;
 
+	.x-cell {
+		box-sizing: border-box;
+	}
+
 	.x-header {
-		height: 24px;
+		display: flex;
+		flex-direction: row;
+		min-height: fit-content;
+		border-bottom: 1px solid black;
+		font-weight: bold;
+		box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+		z-index: 1;
+		
+		.x-cell {
+			padding: 8px 8px;
+		}
 	}
 	
 	.x-viewport {
 		flex-grow: 1;
+	}
+
+	.x-row {
+		display: flex;
+		flex-direction: row;
+		border-bottom: 1px solid #e0e0e0;
+		align-content: center;
+
+		&.x-odd {
+			background-color: #fafafa;
+		}
+
+		.x-cell {
+			padding: 4px 8px;
+			display: flex;
+			align-items: center;
+		}
 	}
 }
 
