@@ -20,7 +20,7 @@ class BottomNavigationItem extends Component
 		}
 	}
 
-	onRender( ) {
+	render( ) {
 		return {
 			cls: this._data.hover ? 'x-hover' : '',
 			items: [
@@ -56,7 +56,7 @@ class BottomNavigation extends Component
 		});
 	}
 
-	onRender( ) {
+	render( ) {
 		return {
 			items: this._data.buttons
 		}

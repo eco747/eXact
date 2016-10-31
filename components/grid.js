@@ -1212,7 +1212,7 @@ class Grid extends Component {
 	 * @return {[type]} [description]
 	 */
 	
-	onRender( ) {
+	render( ) {
 		const {
 			autoContainerWidth,
 			autoHeight,

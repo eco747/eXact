@@ -177,7 +177,7 @@ window.onload = function( ) {
 			}, 1000 );
 		}
 
-		onRender( ) {
+		render( ) {
 			return {
 				cls: 'x-unselectable',
 				items: [

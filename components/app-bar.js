@@ -14,7 +14,7 @@ class AppBar extends Component
 		this.icon	= new Icon( ...icon );
 	}
 
-	onRender( ) {
+	render( ) {
 		return {
 			items: [
 				this.icon,

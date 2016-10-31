@@ -16,7 +16,7 @@ class Icon extends Component
 		} );
 	}
 
-	onRender( ) {
+	render( ) {
 	
 		let { glyph, size } = this._data,	
 			cls;

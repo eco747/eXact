@@ -1,6 +1,6 @@
 
 class Dialog extends Component {
-  	onRender( ) {
+  	render( ) {
     	return {
 	  	}
     );

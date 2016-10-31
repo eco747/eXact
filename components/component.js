@@ -7,16 +7,6 @@
 		'content': true
 	};
 
-	const 	event_map = {
-		beforeMount: 	'componentWillMount',
-		afterMount:  	'componentDidMount',
-		beforeUnmount:  'componentWillUnmount',
-		afterUnmount: 	'componentDidUnmount',
-		beforeUpdate: 	'componentWillUpdate',
-		afterUpdate: 	'componentDidUpdate',
-	};
-
-
 	/**
 	 * Base Component Object
 	 */
@@ -26,10 +16,20 @@
 		constructor( ) {
 			this._ 			= new React.Component( );
 			this._.__debug 	= this.constructor.name;				
-			this._.render 	= ( ) => {return this._render( );};
-
+			
+			// setup callbacks
+			this._.render 				= ( ) => {return this._render( );}
+			this._.componentWillMount   = ( ) => {return this._beforeMount( ); }
+			this._.componentDidMount    = ( ) => {return this._afterMount( ); }
+			this._.componentWillUnmount = ( ) => {return this._beforeUnmount( ); }
+			this._.componentDidUnmount  = ( ) => {return this._afterUnmount( ); }
+			this._.componentWillUpdate  = ( ) => {return this._beforeUpdate( ); }
+			this._.componentDidUpdate   = ( ) => {return this._afterUpdate( ); }
+		
+			// generate our component classname
 			this._clsName	= 'x-' + kebabCase(this.constructor.name);
 
+			this._events 	= {};
 			this._data 		= null;		// real data
 			this._watched 	= null;		// generated properties
 		}
@@ -130,14 +130,7 @@
 		 */
 
 		on( events ) {
-
-			for( let i in events ) {
-			
-				let n = event_map[i];
-				if( n ) {
-					this._[n] = events[i].bind( this );
-				}
-			}
+			this._events = events;
 		}
 
 		/**
@@ -189,7 +182,48 @@
 		 */
 		
 		_render( ) {
-			return this.emit( this.onRender.call( this ) );
+			try {
+				return this.emit( this.render() );
+			}
+			catch( e ) {
+				console.log( 'rendering error on object "' + this.constructor.name + '"' );
+			}
+		}
+
+		_beforeMount( ) {
+			if( this._events.beforeMount ) {
+				this._events.beforeMount.call( this );
+			}
+		} 
+		
+		_afterMount( ) {
+			if( this._events.afterMount ) {
+				this._events.afterMount.call( this );
+			}
+		}
+		
+		_beforeUnmount( ) {
+			if( this._events.beforeUnmount ) {
+				this._events.beforeUnmount.call( this );
+			}
+		}
+			
+		_afterUnmount( ) {
+			if( this._events.afterUnmount ) {
+				this._events.afterUnmount.call( this );
+			}
+		} 
+		
+		_beforeUpdate( ) {
+			if( this._events.beforeUpdate ) {
+				this._events.beforeUpdate.call( this );
+			}
+		} 
+		
+		_afterUpdate( ) {
+			if( this._events.afterUpdate ) {
+				this._events.afterUpdate.call( this );
+			}
 		}
 		
 		/**
@@ -266,6 +300,9 @@
 				this._.setState( this._data );
 			}
 		}
+
+
+		
 
 	}
 
