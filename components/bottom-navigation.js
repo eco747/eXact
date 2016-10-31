@@ -26,6 +26,7 @@ class BottomNavigationItem extends Component
 			items: [
 				this.icon,
 				{
+					div: 'span',
 					cls: ' x-text',
 					content: this._data.text
 				}
@@ -34,11 +35,11 @@ class BottomNavigationItem extends Component
 	}
 
 	onMouseEnter( e ) {
-		this.hover = true;
+		this.setHover( true );
 	}
 
 	onMouseLeave( e ) {
-		this.hover = false;
+		this.setHover( false );
 	}
 }
 

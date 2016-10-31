@@ -20,7 +20,7 @@ class AppBar extends Component
 				this.icon,
 				{
 					cls: 'x-text',
-					content: this.title
+					content: this._data.title
 				}
 			]
 		};

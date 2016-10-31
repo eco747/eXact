@@ -17,7 +17,7 @@
 			this._ 			= new React.Component( );
 			this._.__debug 	= this.constructor.name;				
 			
-			// setup callbacks
+			// setup react callbacks
 			this._.render 				= ( ) => {return this._render( );}
 			this._.componentWillMount   = ( ) => {return this._beforeMount( ); }
 			this._.componentDidMount    = ( ) => {return this._afterMount( ); }
@@ -28,10 +28,12 @@
 		
 			// generate our component classname
 			this._clsName	= 'x-' + kebabCase(this.constructor.name);
+			this._chg_id 	= 1;
 
-			this._events 	= {};
 			this._data 		= null;		// real data
 			this._watched 	= null;		// generated properties
+			this._updates 	= {};
+			this._needup 	= false;
 		}
 
 		/**
@@ -122,18 +124,6 @@
 		}
 
 		/**
-		 * life cycle notifications
-		 * accept 
-		 * {
-		 *  	[beforeMount,afterMount,beforeUnmount,afterUnmount,beforeUpdate,afterUpdate] : function
-		 * }
-		 */
-
-		on( events ) {
-			this._events = events;
-		}
-
-		/**
 		 * 
 		 */
 		
@@ -190,40 +180,58 @@
 			}
 		}
 
+		render( ) {
+			debugger;
+			throw 'Please redender something';
+		}
+
 		_beforeMount( ) {
-			if( this._events.beforeMount ) {
-				this._events.beforeMount.call( this );
-			}
+			this.beforeMount( );
 		} 
+
+		beforeMount( ) {
+
+		}
 		
 		_afterMount( ) {
-			if( this._events.afterMount ) {
-				this._events.afterMount.call( this );
-			}
+			this.afterMount( );
+		}
+
+		afterMount( ) {
+
 		}
 		
 		_beforeUnmount( ) {
-			if( this._events.beforeUnmount ) {
-				this._events.beforeUnmount.call( this );
-			}
+			this.beforeUnmount( );
+		}
+
+		beforeUnmount( ) {
+
 		}
 			
 		_afterUnmount( ) {
-			if( this._events.afterUnmount ) {
-				this._events.afterUnmount.call( this );
-			}
+			this.afterUnmount( );
 		} 
+
+		afterUnmount( ) {
+
+		}
 		
 		_beforeUpdate( ) {
-			if( this._events.beforeUpdate ) {
-				this._events.beforeUpdate.call( this );
-			}
+			this.beforeUpdate( this._updates );
 		} 
+
+		beforeUpdate( changes ) {
+
+		}
 		
 		_afterUpdate( ) {
-			if( this._events.afterUpdate ) {
-				this._events.afterUpdate.call( this );
-			}
+			this.afterUpdate( this._updates );
+			this._updates = {};
+		}
+
+		afterUpdate( changes ) {
+
 		}
 		
 		/**
@@ -238,33 +246,24 @@
 				p;
 
 			for( p in data ) {
-				
-				let name = data[p];
+			
+				let name = data[p],
+					iname = name;
 
 				// elements starting with an underscore are hidden from other objects
 				if( name[0]=='_' ) {
 					continue;
 				}
 
+				name = camelCase( name, true );
 				if( this._watched && this._watched[name] ) {
 					continue;
 				}
 
-				if( this.hasOwnProperty(name) ) {
-					console.log( 'property name confict on: ' + name );
-				}
-				else {	
-					Object.defineProperty( this, name, {
-						get: function( ) { 
-							return me._data[name];
-						},
-						set: function(value ) {
-							me._setDataValue( name, value );
-						}
-					});
+				this['set' + name ] = ( value ) => {me._setDataValue(iname,value);}
+				this['get' + name ] = ( ) => { return me._data[iname];}
 
-					watched[name] = true;
-				}
+				watched[name] = true;
 			}
 
 			this._watched = watched;
@@ -280,12 +279,21 @@
 
 			if( data[name] !== value ) {
 				data[name] = value;
+				this._updates[name] = true;
 				this._dataChanged( );
 			}	
 		}
 
 		_dataChanged( ) {
-			this._refresh( );
+
+			if( !this._needup ) {
+				asap( () => {
+					this._needup = false;
+					this._refresh( );
+				});	
+			}
+
+			this._needup = true;
 		}
 
 		/**
@@ -293,11 +301,12 @@
 		 */
 		
 		_refresh( force ) {
+
 			if( force ) {
 				this._.forceUpdate( );
 			}
 			else {
-				this._.setState( this._data );
+				this._.setState( {_:this._chg_id++} );
 			}
 		}
 

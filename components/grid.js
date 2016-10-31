@@ -280,7 +280,7 @@ class CellSizeAndPositionManager {
 	* As cells as measured the estimate will be updated.
 	*/
 	getTotalSize () {
-		const lastMeasuredCellSizeAndPosition = this.getSizeAndPositionOfLastMeasuredCell()
+		const  lastMeasuredCellSizeAndPosition = this.getSizeAndPositionOfLastMeasuredCell()
 		return lastMeasuredCellSizeAndPosition.offset + lastMeasuredCellSizeAndPosition.size + (this._cellCount - this._lastMeasuredIndex - 1) * this._estimatedCellSize
 	}
 
@@ -333,9 +333,9 @@ class CellSizeAndPositionManager {
 		}
 
 		const maxOffset = offset + containerSize
-		const start = this._findNearestCell(offset)
+		const start 	= this._findNearestCell(offset)
 
-		const datum = this.getSizeAndPositionOfCell(start)
+		const datum 	= this.getSizeAndPositionOfCell(start)
 		offset = datum.offset + datum.size
 
 		let stop = start
