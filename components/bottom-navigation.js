@@ -5,18 +5,19 @@
 
 class BottomNavigationItem extends Component
 {
-	constructor( text, ...icon ) {
+	constructor( {title,icon,onclick} ) {
 		super( );
 
-		this.icon = new Icon( ...icon );
+		this.icon = new Icon( {glyph:icon} );
 		this.setDataModel({
-			text: text || ' ',
+			title: title || ' ',
 			hover: false
 		});
 
 		this.events = {
 			onmouseenter: this.onMouseEnter,
-			onmouseleave: this.onMouseLeave
+			onmouseleave: this.onMouseLeave,
+			onclick: onclick
 		}
 	}
 
@@ -28,7 +29,7 @@ class BottomNavigationItem extends Component
 				{
 					div: 'span',
 					cls: ' x-text',
-					content: this._data.text
+					content: this._data.title
 				}
 			]
 		}
@@ -49,11 +50,11 @@ class BottomNavigationItem extends Component
 
 class BottomNavigation extends Component
 {
-	constructor( cfg ) {
-		super( cfg );
+	constructor({buttons} ) {
+		super( );
 
 		this.setDataModel({
-			buttons: []		
+			buttons: buttons	
 		});
 	}
 

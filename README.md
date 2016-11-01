@@ -41,7 +41,7 @@ Just create a file named app.js
     }
 
     // we just tell the system where to render this application.
-    App.renderTo( document.body );
+    new App().renderTo( document.body );
 ```
 
 In out app.html, we will add this

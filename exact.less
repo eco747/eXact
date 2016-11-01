@@ -1,3 +1,7 @@
+@def-font-size: 12px;
+@def-font-fam: sans-serif;
+
+
 body {
 	margin: 0;
 }
@@ -19,7 +23,8 @@ body {
 	right: 0;
 	bottom: 0;
 	position: absolute;
-	font-family: sans-serif;
+	font-family: @def-font-fam;
+	font-size: @def-font-size;
 	display: flex;
 	flex-direction: column;
 }
@@ -49,6 +54,10 @@ body {
 		flex-grow: 1;
 		padding: 8px;
 	}
+
+	.x-icon {
+		font-size: 24px;
+	}
 }
 
 .x-bottom-navigation
@@ -76,6 +85,7 @@ body {
 		.x-icon {
 	    	display: block;
 	    	width: 100%;
+	    	font-size: 24px;
 	    }
 
 	    .x-text {
@@ -131,3 +141,46 @@ body {
 	}
 }
 
+
+.x-window {
+	background-color: #fff;
+	font-family: @def-font-fam;
+	font-size: @def-font-size;
+
+	z-index: 20;
+    //border: 1px solid black;	
+	//box-shadow: 4px 4px 8px rgba(0,0,0,0.1);
+
+    .x-header {
+    	background-color: #00838F;
+    	color: #fff;
+    	padding: 8px 8px;
+    }
+}
+
+.x-modal-mask {
+	position: absolute;
+	z-index: 10;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0,0,0,0.5);
+
+	display: flex;
+	align-items: center;   
+    justify-content: center;
+
+    .x-header {
+    	display: flex;
+    	flex-direction: row;
+    	align-items: center;
+
+    	.x-text {
+    		flex-grow: 1;
+    	}
+    	.x-icon {
+    		font-size: 16px;
+    	}
+    }
+}

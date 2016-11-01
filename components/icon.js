@@ -5,7 +5,7 @@
 
 class Icon extends Component
 {
-	constructor( glyph, size=24 ) {
+	constructor( {glyph,size} ) {
 		super( );
 
 		this.re_glyph = /(\w+)\@([\w_-]+)/;

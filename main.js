@@ -12,18 +12,27 @@ window.onload = function( ) {
 
 			super( );
 			
-			this.header 	= new AppBar( 'Application', 'fa@thermometer-empty' );
-			this.botbar  	= new BottomNavigation( );
-			
-			let 	b1 		= new BottomNavigationItem( 'Recent', 'fa@undo' );
-			b1.onclick 		= () => this.recentClick;
+			this.header 	= new AppBar({
+				title:'Application', 
+				icon:'fa@thermometer-empty'
+			});
 
-			let 	b2 		= new BottomNavigationItem( 'BlueTooth', 'fa@bluetooth' );
-			
-			this.botbar.setButtons([
-				b1, b2
-			]);
+			let b1, b2;
 
+			this.botbar  	= new BottomNavigation({
+				buttons: [
+					b1 = new BottomNavigationItem({
+						title: 'Recent', 
+						icon: 'fa@undo',
+						onclick: this.recentClick.bind(this)
+					}),
+					b2 = new BottomNavigationItem({
+						title: 'BlueTooth', 
+						icon: 'fa@bluetooth' 
+					})
+				]
+			});
+			
 			let model = new DataModel( {
 				fields: ['first_name', 'last_name', 'address']
 			});
@@ -48,9 +57,9 @@ window.onload = function( ) {
 				]
 			});
 
-			//setInterval( function() {
-			//	b1.setText( new Date().toLocaleString() );
-			//}, 1000 );
+			setInterval( function() {
+				b2.setTitle( new Date().toLocaleString() );
+			}, 1000 );
 		}
 
 		render( ) {
@@ -65,14 +74,15 @@ window.onload = function( ) {
 		}
 
 		recentClick( ) {
-			//new Mask( );
+			let w = new Window( {
+				title: 'Hello world'
+			});
+
+			w.show( );
 		}
 	}  
 
-	//new App().renderTo( document.body );
-	App.renderTo(
-		document.body
-	);
+	new App().renderTo(document.body);
 }
 
 

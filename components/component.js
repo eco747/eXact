@@ -95,17 +95,22 @@
 					}
 
 					for( i in t ) {
-						if( t[i] instanceof Component ) {
-							items.push( React.createElement( t[i]._ ) );
+						let child = t[i];
+						
+						if( !child ) {
+							continue;
 						}
-						else if( typeof t[i] === 'function' ) {
-							items.push( React.createElement( t[i] ) );	
+						else if( isString(child) ) {
+							items.push(	child );
 						}
-						else if( isObject(t[i]) ) {
-							items.push( this.emit(t[i],lvl+1) );
+						else if( child instanceof Component ) {
+							items.push( React.createElement( child._ ) );
 						}
-						else {
-							items.push(	t[i] );
+						else if( typeof child === 'function' ) {
+							items.push( React.createElement( child ) );	
+						}
+						else if( isObject(child) ) {
+							items.push( this.emit(child,lvl+1) );
 						}
 					}
 				}
@@ -119,7 +124,10 @@
 			if( lvl==0 && this.events ) {
 				t = this.events;
 				for( i in t ) {
-					props[i] = t[i].bind(this);
+					let fn = t[i];
+					if( fn ) {
+						props[i] = fn.bind(this);
+					}
 				}
 			}
 
@@ -155,12 +163,10 @@
 		 * 	create the object to a specified element
 		 */
 		
-		static renderTo( el ) {
-
-			let component = new this( );
+		renderTo( el ) {
 
 			React.render(
-				React.createElement( component._ ),
+				React.createElement( this._ ),
 			  	isString(el) ? document.getElementById(el) : el
 			);
 		}

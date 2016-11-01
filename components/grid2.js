@@ -2,7 +2,8 @@
 
 
 	/**
-	 *
+	 * Row class
+	 * responsible to setup cells in a row
 	 */
 
 	class 	Row extends Component
@@ -70,7 +71,8 @@
 	}
 
 	/**
-	 *
+	 * grid header
+	 * TODO: put in inside a container
 	 */
 
 	class 	Header extends Row
@@ -276,6 +278,12 @@
 			this._renderRows( );
 		}
 
+		/**
+		 * virtual grid: render only the visible rows
+		 * the idea is really studpid: each on visible line is put in a kind of recycler
+		 * then each time we need to render a line at a position we get it from an available item in the recycler.
+		 */
+		
 		_renderRows( ) {
 			if( !this.viewport._dom ) {
 				return null;				
@@ -293,9 +301,10 @@
 				this.flexWidth = width;
 			}
 
-			let 	scrollTop = this.scrollTop,
-					bottom  = scrollTop + height;
+			let	scrollTop = this.scrollTop,
+				bottom  = scrollTop + height;
 			
+			// don't know why but the scrollbar allow do go after the end
 			if( scrollTop>(this.totalHeight - height - rowHeight) ) {
 				scrollTop = this.totalHeight - height - rowHeight;
 			}
@@ -311,12 +320,13 @@
 				visRows = ndata;
 			}
 
+			// review: could be optimized in the 2nd loop
 			for( i=nrows; i<visRows; i++ ) {
 				rows.push( { up: true, top: 0, row: new Row( this.columns, this.store ) } );
 			}
 
 			//	setup rows
-			let		nr 		= rows.length;
+			let		nr 	= rows.length;
 
 			//console.log( '--------------------------------- ' + scrollTop );
 			
@@ -341,9 +351,12 @@
 				}
 			}
 
-			// reposition missing positions with available rows
+			// reuse missing positions with available rows
 			let 	result = [];
-			let 	top = Math.floor(scrollTop/rowHeight) * rowHeight;
+			let 	top = Math.floor(scrollTop/rowHeight) * rowHeight;	
+
+			// we start from the first visible (or partially visible)
+			// to the bottom of visible part
 
 			for( i=0; i<nr; i++ ) {
 

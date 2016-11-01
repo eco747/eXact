@@ -4,14 +4,14 @@
 
 class AppBar extends Component
 {
-	constructor( title, ...icon ) {
+	constructor( {title,icon}) {
 		super( );
 
 		this.setDataModel( {
 			title: title || ' ',		// title shown
 		} );
 
-		this.icon	= new Icon( ...icon );
+		this.icon	= new Icon({glyph:icon});
 	}
 
 	render( ) {
