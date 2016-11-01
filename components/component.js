@@ -16,7 +16,7 @@
 		constructor( ) {
 			this._ 			= new React.Component( );
 			this._.__debug 	= this.constructor.name;				
-			
+						
 			// setup react callbacks
 			this._.render 				= ( ) => {return this._render( );}
 			this._.componentWillMount   = ( ) => {return this._beforeMount( ); }
@@ -28,6 +28,7 @@
 		
 			// generate our component classname
 			this._clsName	= 'x-' + kebabCase(this.constructor.name);
+			this._defStyle 	= null;
 			this._chg_id 	= 1;
 
 			this._data 		= null;		// real data
@@ -68,7 +69,7 @@
 			// next attributes
 			// 	copy all but the one that need to be processed
 			props.attrs = [];
-			
+
 			for( i in desc ) {
 				if( !desc.hasOwnProperty(i) ||
 					skipped_attrs[i] ) {
@@ -76,6 +77,16 @@
 				}
 
 				props[i] = desc[i];
+			}
+
+			//  merge defStyle with assigned style
+			if( this._defStyle ) {
+				if( props.style ) {
+					props.style = Object.assign( this._defStyle, props.style ); // given style win.
+				}
+				else {
+					props.style = this._defStyle;
+				}
 			}
 
 			//	prepare sub elements

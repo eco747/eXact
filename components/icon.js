@@ -21,7 +21,10 @@ class Icon extends Component
 		let { glyph, size } = this._data,	
 			cls;
 
-		if( !glyph ) debugger;
+		if( !glyph ) {
+			debugger;
+			return null;
+		}
 
 		if( glyph.match(this.re_glyph) ) {
 			let x = this.re_glyph.exec( glyph );
