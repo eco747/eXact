@@ -56,7 +56,7 @@
 			}
 
 			return {
-				cls: (index%2)==0 ? 'x-odd' : '',
+				cls: 'x-box ' + ((index%2)==0 ? 'x-odd' : ''),
 					
 				style: {
 					position: 'absolute',
@@ -117,7 +117,7 @@
 			main_style = {
 				left: -this._data.scrollLeft,
 				position: 'relative',
-				width: this._data.totalWidth,
+				width: this._data.totalWidth || '100%',
 			};
 
 			return {
@@ -149,7 +149,7 @@
 			return {
 
 				style: {
-					width: totalWidth,
+					width: totalWidth || '100%',
 					height: totalHeight,
 					position: 'relative',
 				},
@@ -187,7 +187,9 @@
 			return {
 				ref: this.acquireRef.bind(this),
 				style: {
-					overflow: 'auto'
+					overflow: 'auto',
+					flexGrow: 1,
+					boxSizing: 'border-box'
 				},
 				
 				onscroll: 	this._data.onScroll,
@@ -219,14 +221,14 @@
 			this.columns 	= columns;
 			this.store 		= store;
 
-			let 	totalHeight = store.getCount( ) * this._data.rowHeight;
+			this.totalHeight 	= store.getCount( ) * this._data.rowHeight;
 
 			this.hasFlex 		= false;
 			this.totalWidth  	= this._calcHWidth( );
 			this.flexWidth 		= 0;
 
 			this.viewport.setOnScroll( this._onScroll.bind(this) );
-			this.content.setTotalHeight( totalHeight );
+			this.content.setTotalHeight( this.totalHeight );
 			this.content.setRenderContent( this._renderRows.bind(this) );
 			
 			this.rowPool	= [];
@@ -281,6 +283,7 @@
 
 			let height  = this.viewport._dom.clientHeight,
 				width 	= this.viewport._dom.clientWidth,
+				rowHeight = this._data.rowHeight,
 				i;
 
 			// update hz sizes if flex columns
@@ -290,10 +293,16 @@
 				this.flexWidth = width;
 			}
 
-			let { rowHeight } = this._data;
+			let 	scrollTop = this.scrollTop,
+					bottom  = scrollTop + height;
+			
+			if( scrollTop>(this.totalHeight - height - rowHeight) ) {
+				scrollTop = this.totalHeight - height - rowHeight;
+			}
+
 
 			//	check that we have enough rows in our pool
-			let visRows	= (height / rowHeight) + 2,
+			let visRows	= Math.floor(height / rowHeight) + 2,
 				rows 	= this.rowPool,
 				nrows 	= rows.length,
 				ndata 	= this.store.getCount( );
@@ -307,94 +316,47 @@
 			}
 
 			//	setup rows
-			let 	scrollTop = this.scrollTop,
-					delta 	= scrollTop%rowHeight,
-					top 	= scrollTop - delta,
-					nr 		= rows.length,
-					idx 	= Math.ceil( scrollTop / rowHeight );
+			let		nr 		= rows.length;
 
-			let 	newPool = [],
-					result = [];
+			//console.log( '--------------------------------- ' + scrollTop );
 			
-			//	scrolling down
-			if( this.lastScrollTop<=scrollTop ) {
-				
-				for( i=0; i<nr; i++ ) {
+			// find elements that are outside visible range
+			//	console.log( '> top: ' + scrollTop + ' bottom: ' + bottom );
 
-					let row = rows[i];
+			let 	available = [];
+			let 	positions = {};
 
-					if( row.up || (row.top + rowHeight) <= scrollTop ) {
-						row.up = true;
-						newPool.push( row );
-					}
-					else {
-						newPool.unshift( row );
-					}
+			for( i=0; i<nr; i++ ) {
 
-					top 	+= rowHeight;
+				let row = rows[i];
+
+				if( row.up || (row.top + rowHeight) <= scrollTop || row.top > bottom ) {
+					//	console.log( 'hit: ' + row.row._data.index + ' top: ' + row.top );
+					row.up 	= true;				
+					available.push( row );
 				}
-
-				top = scrollTop - delta;
-
-				for( i=0; i<nr; i++ ) {
-					
-					let row = newPool[i];
-
-					if( row.up ) {
-						row.top = top;
-						row.row.setTop( top );
-						row.row.setHeight( rowHeight );
-						row.row.setIndex( idx );
-						row.up = false;
-					}
-
-					result.push( row.row );
-					top 	+= rowHeight;
-					idx++;
+				else {
+					//	console.log( 'skip: ' + row.row._data.index + ' top: ' + row.top );
+					positions[row.top] = row;
 				}
-
-				rows = this.rowPool = newPool;
 			}
-			//	scrolling up
-			else {
 
-				let bottom = scrollTop + height;
+			// reposition missing positions with available rows
+			let 	result = [];
+			let 	top = Math.floor(scrollTop/rowHeight) * rowHeight;
 
-				for( i=0; i<nr; i++ ) {
+			for( i=0; i<nr; i++ ) {
 
-					let row = rows[i];
-
-					if( row.up || row.top > bottom ) {
-						row.up = true;
-						newPool.unshift( row );
-					}
-					else {
-						newPool.push( row );
-					}
-
-					top 	+= rowHeight;
+				let orow = positions[top];
+				if( !orow ) {
+					orow 		= available.pop( );
+					orow.up 	= false;
+					orow.top 	= top;
+					orow.row.setData( {top:top, height:rowHeight, index:top/rowHeight} );
 				}
 
-				top = scrollTop - delta;
-
-				for( i=0; i<nr; i++ ) {
-					
-					let row = newPool[i];
-
-					if( row.up ) {
-						row.top = top;
-						row.row.setTop( top );
-						row.row.setHeight( rowHeight );
-						row.row.setIndex( idx );
-						row.up = false;
-					}
-
-					result.push( row.row );
-					top 	+= rowHeight;
-					idx++;
-				}
-
-				rows = this.rowPool = newPool;
+				result.push( orow.row );
+				top	+= rowHeight;
 			}
 
 			this.lastScrollTop = scrollTop;
@@ -404,11 +366,7 @@
 		render( ) {
 			return {
 				style: {
-					left: 0,
-					top: 50,
-					right: 0,
-					bottom: 70,
-					position: 'absolute',
+					width: '100%',
 					overflow: 'hidden',
 				},
 				items: [

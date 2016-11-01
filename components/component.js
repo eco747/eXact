@@ -171,13 +171,13 @@
 		 */
 		
 		_render( ) {
-			try {
+			//try {
 				console.log( 'rendering: ', this.constructor.name );
 				return this.emit( this.render() );
-			}
-			catch( e ) {
-				console.log( 'rendering error on object "' + this.constructor.name + '"' );
-			}
+			//}
+			//catch( e ) {
+			//	console.log( 'rendering error on object "' + this.constructor.name + '" : ' + JSON.stringify(e) );
+			//}
 		}
 
 		render( ) {
@@ -238,6 +238,18 @@
 			return event.target==this._;
 		}
 
+		setData( obj ) {
+			
+			let chg = false;			
+			for( let d in obj ) {
+				chg |= this._setDataValue( d, obj[d], true );
+			}
+
+			if( chg ) {
+				this._refresh( );
+			}
+		}
+
 		/**
 		 * define all properies of data as direct properties
 		 */
@@ -263,7 +275,7 @@
 					continue;
 				}
 
-				this['set' + name ] = ( value ) => {me._setDataValue(iname,value);}
+				this['set' + name ] = ( value ) => {me._setDataValue(iname,value);return me;}
 				this['get' + name ] = ( ) => { return me._data[iname];}
 
 				watched[name] = true;
@@ -272,19 +284,27 @@
 			this._watched = watched;
 		}
 
-		_setDataValue( name, value ) {
+		_setDataValue( name, value, quiet ) {
 
-			let 	data = this._data;
+			let 	data = this._data,
+					chg = false;
 
 			if( !data.hasOwnProperty(name) ) {
 				throw 'Unknown data property ' + name;
 			}
 
 			if( data[name] !== value ) {
+
+				chg = true;				
 				data[name] = value;
 				this._updates[name] = true;
-				this._dataChanged( );
+
+				if( !quiet ) {
+					this._dataChanged( );
+				}
 			}	
+
+			return chg;
 		}
 
 		_dataChanged( ) {
