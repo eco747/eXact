@@ -1,6 +1,40 @@
 
 window.onload = function( ) {
 
+	createClass( 'Base', {
+
+		construct: function( ) {
+			this.toto = 7;
+		},
+
+		render: function( ) {
+			return null;
+		}
+	});
+
+	createClass( 'Test', {
+
+		extend: Base,
+		
+		construct: function( ) {
+			this.__super.construct( );
+		},
+
+		render: function( ) {
+
+			var t = this.callParent;
+
+			function u( ) {
+				t( );
+			}
+
+			return u( );;
+		}
+	});
+
+debugger;
+	var test = new Test( );
+	test.render( );
 
 	/**
 	 *

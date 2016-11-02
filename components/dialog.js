@@ -76,7 +76,7 @@
 		
 		// small hack:
 		// for modless windows, as react must render elements inside a root element (and remove other elements)
-		// we have to create a temp element by hand, then move our dom from the temp to the body element
+		// we have to create a temp element by hand
 		// for modals: the created element serves as modal mask, we keep it.
 		
 		_createRootNode( ) {
@@ -96,22 +96,11 @@
 			React.unstable_renderSubtreeIntoContainer( this._, React.createElement(this._), this.root );
 		}
 
-		_moveToRoot( dom ) {
-			if( this.root ) {
-				
-				//if( !this.modal ) {
-				//	document.body.appendChild( dom );
-				//	document.body.removeChild( this.root );
-				//}
-			}
-		}
-
 		render( ) {
 			const {width,height,frame,sizeable} = this._data;
 
 
 	    	return {
-	    		ref: this._moveToRoot.bind(this),
 	    		cls: 'x-box x-nosel',
 	    		style: {
 	    			position: 'fixed',
