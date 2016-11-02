@@ -1,5 +1,16 @@
 (function($$) {
 
+	class 	as_soon
+	{
+		run( fn ) {
+			let me = this;
+			if( !me.do ) {
+				me.do = true;
+				asap( function() {me.do=false;fn();} );
+			}
+		}
+	}
+
 
 	/**
 	 * Row class
@@ -22,11 +33,9 @@
 			this.columns = columns;
 		}
 
-
 		render( ) {
-
 			let { top, height, index } = this._data;
-
+			
 			let cells = [],
 				rec = this.store.getAt( index ),
 				cols = this.columns,
@@ -147,9 +156,8 @@
 
 		render( ) {
 			const {totalWidth,totalHeight} = this._data;
-			
-			return {
 
+			return {
 				style: {
 					width: totalWidth || '100%',
 					height: totalHeight,
@@ -185,6 +193,10 @@
 			this.content.renderTo( this._dom );
 		}
 
+		afterUpdate() {
+			this.content.renderTo( this._dom );
+		}
+
 		render( ) {
 
 			return {
@@ -211,7 +223,7 @@
 			super( );
 
 			this.setDataModel({
-				rowHeight: 30
+				rowHeight: 40
 			});
 
 			this._scrollbarSize = getScrollbarSize( );
@@ -219,15 +231,18 @@
 			this.content 	= new Container( );
 			this.viewport 	= new Viewport( this.content );
 			this.header 	= new Header( columns );
+			this.asap 		= new as_soon;
 			
 			this.columns 	= columns;
 			this.store 		= store;
+			this.retrig 	= 0;
 
 			this.totalHeight 	= store.getCount( ) * this._data.rowHeight;
 
 			this.hasFlex 		= false;
 			this.totalWidth  	= this._calcHWidth( );
 			this.flexWidth 		= 0;
+			this.updateTitle 	= true;
 
 			this.viewport.setOnScroll( this._onScroll.bind(this) );
 			this.content.setTotalHeight( this.totalHeight );
@@ -265,17 +280,19 @@
 
 		_onScroll( event ) {
 
-			//if ( !this.viewport.isTargetOfEvent(event) ) {
-			//	return
-			//}
-
 			let scrollLeft = event.target.scrollLeft;
 			this.header.setScrollLeft( scrollLeft );
 
-			let scrollTop = event.target.scrollTop;
+			let scrollTop = event.target.scrollTop,	
+				rowHeight = this._data.rowHeight;
+			
 			this.scrollTop = scrollTop;
 
-			this._renderRows();
+			let top 	= Math.floor(scrollTop/rowHeight) * rowHeight;
+			
+			if( this.lastScrollTop!=top ) {
+				this._renderRows( );	
+			}
 		}
 
 		/**
@@ -296,29 +313,54 @@
 				i;
 
 			// update hz sizes if flex columns
-			if( this.hasFlex && this.totalWidth<width && this.flexWidth!=width ) {
+			if( (this.hasFlex && this.totalWidth<width && this.flexWidth!=width) ) {
 				this.header.setTotalWidth( width-this._scrollbarSize );
 				this.content.setTotalWidth( width );
 				this.flexWidth = width;
+				this.updateTitle = false;
 			}
 
-			let	scrollTop = this.scrollTop,
-				bottom  = scrollTop + height;
-			
+			let	scrollTop = this.scrollTop;
+							
 			// don't know why but the scrollbar allow do go after the end
 			if( scrollTop>(this.totalHeight - height - rowHeight) ) {
 				scrollTop = this.totalHeight - height - rowHeight;
 			}
 
+			let 	overscan_before, overscan_after;
+
 			let top 	= Math.floor(scrollTop/rowHeight) * rowHeight;
 			if( this.lastScrollTop==top && !calcRes ) {
-				return;
+				return false;
 			}
-			
+
+			let scrollUp = top<this.lastScrollTop;
+			const overscan = 80;
+
+			if( scrollUp ) {
+				overscan_before = overscan;
+				overscan_after  = 0;
+			}
+			else {
+				overscan_before = 0;
+				overscan_after  = overscan;	
+			}
+
+
 			this.lastScrollTop = top;
+
+			top -= overscan_before * rowHeight;
+
+			if( top<0 ) {
+				overscan_before = 0;
+				top 	= 0;
+			}
+
+			let bottom  = top + height + (overscan_before + overscan_after) * rowHeight;
+
 					
 			//	check that we have enough rows in our pool
-			let visRows	= Math.floor(height / rowHeight) + 2,
+			let visRows	= (Math.floor(height / rowHeight) + 2) + (overscan_before+overscan_after),
 				rows 	= this.rowPool,
 				nrows 	= rows.length,
 				ndata 	= this.store.getCount( );
@@ -343,7 +385,7 @@
 
 				let row = rows[i];
 
-				if( row.up || (row.top + rowHeight) <= scrollTop || row.top > bottom ) {
+				if( row.up || (row.top + rowHeight) <= top || row.top > bottom ) {
 					row.up 	= true;				
 					available.push( row );
 				}
@@ -376,10 +418,10 @@
 
 				top	+= rowHeight;
 			}
-
+			
 			return result;
 		}
-		
+
 		render( ) {
 			return {
 				style: {

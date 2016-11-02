@@ -54,7 +54,13 @@ window.onload = function( ) {
 				columns: [
 					{ title: 'First name', index: 'first_name', width: 400 },
 					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
-					{ title: 'Address',    index: 'address', flex: 2 }
+					{ title: 'Address',    index: 'address', flex: 1 },
+					{ title: 'First name', index: 'first_name', width: 400 },
+					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
+					{ title: 'Address',    index: 'address', flex: 1 },
+					{ title: 'First name', index: 'first_name', width: 400 },
+					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
+					{ title: 'Address',    index: 'address', flex: 1 },
 				]
 			});
 
@@ -87,7 +93,10 @@ window.onload = function( ) {
 		}
 	}  
 
-	new App().renderTo(document.body);
+	let app = new App();
+	app.renderTo(document.body);
+
+	window.addEventListener( 'resize', app._refresh.bind(app) );
 }
 
 

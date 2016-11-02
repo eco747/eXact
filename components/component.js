@@ -195,6 +195,7 @@
 			catch( e ) {
 				debugger;
 				console.log( 'rendering error on object "' + this.constructor.name + '" : ' + JSON.stringify(e) );
+				return null;
 			}
 		}
 
