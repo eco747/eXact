@@ -58,9 +58,9 @@ window.onload = function( ) {
 				]
 			});
 
-			setInterval( function() {
-				b2.setTitle( new Date().toLocaleString() );
-			}, 1000 );
+//			setInterval( function() {
+//				b2.setTitle( new Date().toLocaleString() );
+//			}, 1000 );
 		}
 
 		render( ) {

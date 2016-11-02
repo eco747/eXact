@@ -188,13 +188,14 @@
 		 */
 		
 		_render( ) {
-			//try {
-				console.log( 'rendering: ', this.constructor.name );
+			try {
+				//console.log( 'rendering: ', this.constructor.name );
 				return this.emit( this.render() );
-			//}
-			//catch( e ) {
-			//	console.log( 'rendering error on object "' + this.constructor.name + '" : ' + JSON.stringify(e) );
-			//}
+			}
+			catch( e ) {
+				debugger;
+				console.log( 'rendering error on object "' + this.constructor.name + '" : ' + JSON.stringify(e) );
+			}
 		}
 
 		render( ) {

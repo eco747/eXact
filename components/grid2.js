@@ -178,10 +178,11 @@
 		}
 
 		acquireRef( dom ) {
-			this._dom = dom;  
-			if( this.content ) {
-				this.content._refresh( );
-			}
+			this._dom = dom;  			
+		}
+
+		afterMount() {
+			this.content.renderTo( this._dom );
 		}
 
 		render( ) {
@@ -195,7 +196,6 @@
 				},
 				
 				onscroll: 	this._data.onScroll,
-				items: 		this.content
 			};
 		}
 	}
@@ -231,11 +231,11 @@
 
 			this.viewport.setOnScroll( this._onScroll.bind(this) );
 			this.content.setTotalHeight( this.totalHeight );
-			this.content.setRenderContent( this._renderRows.bind(this) );
+			this.content.setRenderContent( this._renderRows.bind(this,true) );
 			
 			this.rowPool	= [];
 			this.scrollTop  = 0;
-			this.lastScrollTop = 0;
+			this.lastScrollTop = -1;
 		}
 
 		_calcHWidth( ) {
@@ -275,7 +275,7 @@
 			let scrollTop = event.target.scrollTop;
 			this.scrollTop = scrollTop;
 
-			this._renderRows( );
+			this._renderRows();
 		}
 
 		/**
@@ -284,7 +284,8 @@
 		 * then each time we need to render a line at a position we get it from an available item in the recycler.
 		 */
 		
-		_renderRows( ) {
+		_renderRows( calcRes ) {
+
 			if( !this.viewport._dom ) {
 				return null;				
 			}
@@ -309,7 +310,13 @@
 				scrollTop = this.totalHeight - height - rowHeight;
 			}
 
-
+			let top 	= Math.floor(scrollTop/rowHeight) * rowHeight;
+			if( this.lastScrollTop==top && !calcRes ) {
+				return;
+			}
+			
+			this.lastScrollTop = top;
+					
 			//	check that we have enough rows in our pool
 			let visRows	= Math.floor(height / rowHeight) + 2,
 				rows 	= this.rowPool,
@@ -328,11 +335,7 @@
 			//	setup rows
 			let		nr 	= rows.length;
 
-			//console.log( '--------------------------------- ' + scrollTop );
-			
 			// find elements that are outside visible range
-			//	console.log( '> top: ' + scrollTop + ' bottom: ' + bottom );
-
 			let 	available = [];
 			let 	positions = {};
 
@@ -341,20 +344,17 @@
 				let row = rows[i];
 
 				if( row.up || (row.top + rowHeight) <= scrollTop || row.top > bottom ) {
-					//	console.log( 'hit: ' + row.row._data.index + ' top: ' + row.top );
 					row.up 	= true;				
 					available.push( row );
 				}
 				else {
-					//	console.log( 'skip: ' + row.row._data.index + ' top: ' + row.top );
 					positions[row.top] = row;
 				}
 			}
 
 			// reuse missing positions with available rows
 			let 	result = [];
-			let 	top = Math.floor(scrollTop/rowHeight) * rowHeight;	
-
+			
 			// we start from the first visible (or partially visible)
 			// to the bottom of visible part
 
@@ -363,16 +363,20 @@
 				let orow = positions[top];
 				if( !orow ) {
 					orow 		= available.pop( );
+
+					let idx = top/rowHeight;
 					orow.up 	= false;
 					orow.top 	= top;
-					orow.row.setData( {top:top, height:rowHeight, index:top/rowHeight} );
+					orow.row.setData( {top:top, height:rowHeight, index:idx} );
 				}
 
-				result.push( orow.row );
+				if( calcRes ) {
+					result.push( orow.row );
+				}
+
 				top	+= rowHeight;
 			}
 
-			this.lastScrollTop = scrollTop;
 			return result;
 		}
 		
