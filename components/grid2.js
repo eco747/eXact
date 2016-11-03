@@ -1,17 +1,5 @@
 (function($$) {
 
-	class 	as_soon
-	{
-		run( fn ) {
-			let me = this;
-			if( !me.do ) {
-				me.do = true;
-				asap( function() {me.do=false;fn();} );
-			}
-		}
-	}
-
-
 	/**
 	 * Row class
 	 * responsible to setup cells in a row
@@ -238,7 +226,6 @@
 			this.content 	= new Container( );
 			this.viewport 	= new Viewport( this.content );
 			this.header 	= new Header( columns );
-			this.asap 		= new as_soon;
 			
 			this.columns 	= columns;
 			this.store 		= store;
