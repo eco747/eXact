@@ -27,10 +27,12 @@
 				top: 0,
 				height: 0,
 				index: 0,
+				visible: true
 			});
 
 			this.store = store;
 			this.columns = columns;
+			this.visible = true;
 		}
 
 		render( ) {
@@ -42,7 +44,7 @@
 				len = cols.length,
 				model = this.store.model;
 
-			if( rec ) {
+			if( rec && this._data.visible ) {
 				for( let c=0; c<len; c++ ) {
 
 					let col = cols[c],
@@ -58,22 +60,27 @@
 					let cell = {
 						cls: 'x-cell',
 						style: style,
-						content: model._get(col.index,rec)	
+						content: model._get(col.index,rec).toString()	
 					};
 
 					cells.push( cell );
 				}
 			}
 
+			let style = {
+				position: 'absolute',
+				top: top,
+				height: height,
+				width: '100%',
+			};
+
+			if( !this._data.visible ) {
+				style.display = 'non';
+			}
+
 			return {
 				cls: 'x-box ' + ((index%2)==0 ? 'x-odd' : ''),
-					
-				style: {
-					position: 'absolute',
-					top: top,
-					height: height,
-					width: '100%',
-				},
+				style: style,
 				items: cells
 			}
 		}
@@ -314,7 +321,7 @@
 
 			// update hz sizes if flex columns
 			if( (this.hasFlex && this.totalWidth<width && this.flexWidth!=width) ) {
-				this.header.setTotalWidth( width-this._scrollbarSize );
+				this.header.setTotalWidth( this.viewport._dom.clientWidth );
 				this.content.setTotalWidth( width );
 				this.flexWidth = width;
 				this.updateTitle = false;
@@ -329,14 +336,13 @@
 
 			let 	overscan_before, overscan_after;
 
-			let top 	= Math.floor(scrollTop/rowHeight) * rowHeight;
-			if( this.lastScrollTop==top && !calcRes ) {
-				return false;
-			}
+			let idxTop = Math.floor(scrollTop/rowHeight),
+				idxBottom = idxTop + Math.ceil(height/rowHeight),
+				ndata = this.store.getCount( );
 
-			let scrollUp = top<this.lastScrollTop;
+			let scrollUp = (idxTop*rowHeight)<this.lastScrollTop;
+			
 			const overscan = 80;
-
 			if( scrollUp ) {
 				overscan_before = overscan;
 				overscan_after  = 0;
@@ -346,49 +352,43 @@
 				overscan_after  = overscan;	
 			}
 
+			idxTop	-= overscan_before;
+			if( idxTop < 0 ) {
+				idxTop = 0;
+			}
+
+			idxBottom += overscan_after;
+			if( idxBottom >= ndata) {
+				idxBottom = ndata-1;
+			}
+
+			let nVis = idxBottom - idxTop,
+				top = idxTop * rowHeight,
+				bottom = idxBottom * rowHeight;
+
+			if( this.lastScrollTop==top && !calcRes ) {
+				return false;
+			}
 
 			this.lastScrollTop = top;
 
-			top -= overscan_before * rowHeight;
-
-			if( top<0 ) {
-				overscan_before = 0;
-				top 	= 0;
-			}
-
-			let bottom  = top + height + (overscan_before + overscan_after) * rowHeight;
-
-					
-			//	check that we have enough rows in our pool
-			let visRows	= (Math.floor(height / rowHeight) + 2) + (overscan_before+overscan_after),
-				rows 	= this.rowPool,
-				nrows 	= rows.length,
-				ndata 	= this.store.getCount( );
-
-			if( visRows>ndata ) {
-				visRows = ndata;
-			}
-
-			// review: could be optimized in the 2nd loop
-			for( i=nrows; i<visRows; i++ ) {
-				rows.push( { up: true, top: 0, row: new Row( this.columns, this.store ) } );
-			}
-
 			//	setup rows
-			let		nr 	= rows.length;
+			let	rows = this.rowPool,
+				nPool = this.rowPool.length;
 
 			// find elements that are outside visible range
 			let 	available = [];
 			let 	positions = {};
 
-			for( i=0; i<nr; i++ ) {
+			for( i=0; i<nPool; i++ ) {
 
 				let row = rows[i];
 
-				if( row.up || (row.top + rowHeight) <= top || row.top > bottom ) {
-					row.up 	= true;				
+				// if not in visible redraw range, put it in available pool
+				if( (row.top + rowHeight) <= top || row.top > bottom ) {
 					available.push( row );
 				}
+				// else, it's ok keep in mind that this pos is filled
 				else {
 					positions[row.top] = row;
 				}
@@ -400,14 +400,26 @@
 			// we start from the first visible (or partially visible)
 			// to the bottom of visible part
 
-			for( i=0; i<nr; i++ ) {
+			while( top<=bottom ) {
 
+				// is this position occupied ?
 				let orow = positions[top];
-				if( !orow ) {
-					orow 		= available.pop( );
 
+				if( !orow ) {
+					//	no, get one in available Pool
+					orow 		= available.pop( );
+					if( !orow ) {
+						// no, create it
+						orow = { row: new Row( this.columns, this.store ) };
+						// and keep it
+						rows.push( orow );
+					}
+
+					// ensure visible
+					orow.row.setVisible( true );
+
+					// setup it's data
 					let idx = top/rowHeight;
-					orow.up 	= false;
 					orow.top 	= top;
 					orow.row.setData( {top:top, height:rowHeight, index:idx} );
 				}
@@ -419,6 +431,14 @@
 				top	+= rowHeight;
 			}
 			
+			// hide available rows
+			let na = available.length;
+			for( i=0; i<na; i++ ) {
+				let row = available[i];
+				row.top = -1000;
+				row.row.setVisible( false );
+			}
+
 			return result;
 		}
 

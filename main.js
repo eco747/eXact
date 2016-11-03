@@ -1,41 +1,6 @@
 
 window.onload = function( ) {
 
-	createClass( 'Base', {
-
-		construct: function( ) {
-			this.toto = 7;
-		},
-
-		render: function( ) {
-			return null;
-		}
-	});
-
-	createClass( 'Test', {
-
-		extend: Base,
-		
-		construct: function( ) {
-			this.__super.construct( );
-		},
-
-		render: function( ) {
-
-			var t = this.callParent;
-
-			function u( ) {
-				t( );
-			}
-
-			return u( );;
-		}
-	});
-
-debugger;
-	var test = new Test( );
-	test.render( );
-
 	/**
 	 *
 	 */
@@ -69,12 +34,12 @@ debugger;
 			});
 			
 			let model = new DataModel( {
-				fields: ['first_name', 'last_name', 'address']
+				fields: ['first_name', 'last_name', 'address', {name:'num',type:'float'}]
 			});
 
 			let data = [];
-			for( let i=0; i<100000; i++ ) {
-				data.push( { first_name: i + ' - John', last_name: 'Doe', address: i + ', rue des Alouettes' } );
+			for( let i=0; i<10000; i++ ) {
+				data.push( { first_name: i + ' - John', last_name: 'Doe', address: i + ', rue des Alouettes', num: Math.random()*1000 } );
 			}
 
 			let store = new DataStore( { 
@@ -83,18 +48,17 @@ debugger;
 				reader: 'json'
 			} );
 
+			store.filter( [{field:'num',operator:'>', value: 420},{field:'num',operator:'<', value: 520}] );
+			store.sort( [{field:'num'}] );
+
+
 			this.grid		= new Grid( {
 				store: store,
 				columns: [
 					{ title: 'First name', index: 'first_name', width: 400 },
 					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
 					{ title: 'Address',    index: 'address', flex: 1 },
-					{ title: 'First name', index: 'first_name', width: 400 },
-					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
-					{ title: 'Address',    index: 'address', flex: 1 },
-					{ title: 'First name', index: 'first_name', width: 400 },
-					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
-					{ title: 'Address',    index: 'address', flex: 1 },
+					{ title: 'Number', 	   index: 'num', width: 100 },
 				]
 			});
 

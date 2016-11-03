@@ -1,5 +1,5 @@
 // *********************************************************************************************************
-// 										Model
+// 										DATA Model
 // *********************************************************************************************************
 
 
@@ -61,7 +61,7 @@ class 	DataField
 		
 		// forced type ?
 		if( _type ) {
-			switch( type ) {
+			switch( _type ) {
 				case 'string':
 					v = v===undefined ? v : v.toString( );
 					break;
@@ -280,6 +280,117 @@ class 	JsonReader extends DataReader
 	}
 }
 
+// *********************************************************************************************************
+// 									DataSorter
+// *********************************************************************************************************
+
+class 	DataSorter
+{
+	constructor( store, {field, transform, fn, dir} ) {
+		this.store = store;
+		this.model = store.model;
+		this.field = field;
+		this.transform = transform;
+		this.fn = fn;
+		this.desc = dir==='DESC';
+	}
+
+	_getValue( index ) {
+		let buffer = this.store._get( index );
+		return	this.model._get( this.field, buffer );
+	}
+
+	_sort_fn( i1, i2 ) {
+
+		var v1 = this._getValue( i1 ),
+            v2 = this._getValue( i2 );
+
+        if ( this.transform) {
+            v1 = this.transform(v1);
+            v2 = this.transform(v2);
+        }
+
+        let rc;
+        if( this.fn ) {
+        	rc = this.fn( v1, v2 );
+        }
+        else {
+            rc = (v1 > v2 ? 1 : (v1 < v2 ? -1 : 0));
+        }
+
+        return this.desc ? -rc : rc;
+	}
+}
+
+
+// *********************************************************************************************************
+// 									DataFilter
+// *********************************************************************************************************
+
+class 	DataFilter
+{
+	constructor( store, {field, value, operator} ) {
+		this.store = store;
+		this.model = store.model;
+		this.field = field;
+		this.value = value;
+		this.vtype = 0;
+
+		if( isFunction(value) ) {
+			this.vtype = 1;
+		}
+		else if( value && value.constructor===RegExp ) {
+			this.vtype = 2;
+		}
+		else {
+
+			let operators = {
+				'=':  	function( a, b ) { return a==b; },
+				'!=':  	function( a, b ) { return a!=b; },
+				'<':  	function( a, b ) { return a<b; },
+				'>':  	function( a, b ) { return a>b; },
+				'<=':  	function( a, b ) { return a<=b; },
+				'>=':  	function( a, b ) { return a>=b; }
+			};
+
+			if( !operators[operator] ) {
+				operator = '=';
+			}
+
+			this.cmp = operators[operator];
+		}
+	}
+
+	_getValue( index ) {
+		let buffer = this.store._get(index);
+		return	this.model._get( this.field, buffer );
+	}
+
+	_filter( i1 ) {
+
+		var v1 = this._getValue( i1 ),
+			vtype = this.vtype,
+			rc;
+
+		if( vtype==0 ) {
+			rc = this.cmp( v1, this.value );
+		}
+        else if( this.type==1 ) {
+        	rc =  this.fn( v1 );
+        }
+        else {
+        	if( !isString(v1) ) {
+	        	v1 = v1.toString( );
+	        }
+
+	        rc = this.value.test( v1 );
+	    }
+
+	    return rc;
+	}
+}
+
+
 
 // *********************************************************************************************************
 // 									Stores
@@ -298,6 +409,12 @@ class 	DataStore
 		
 		this.model  = model;
 		this.data   = null;
+		
+		this.sort_fields = null;
+		this.filter_fields = null;
+
+		this.index 	= null;
+
 
 		if( isString(reader) ) {
 			switch( reader ) {
@@ -316,44 +433,264 @@ class 	DataStore
 		}
 	}
 
+	/**
+	 * filter the data model
+	 *
+	 * if field is a string, just filter the field using the value (can be a value, a function or a regex )
+	 * field can also be an object { field, value, operator }
+	 * 	operator one of '=', '!=', '<', '<=', '>=', '>'
+	 * field can also be an array or object as describe just before
+	 */
+	
+	filter( field, value ) {
+		let fields;
+
+		// init sorting infos
+		if( isString(field) ) {
+			fields	 = [{
+				field: field,
+				value: value
+			}];
+		}
+		else if( isObject(field) ) {
+			fields = [field];
+		}
+		else if( isArray(field) ) {
+			fields = field;
+		}
+
+		this.filter_fields = fields;
+
+		this._doFilter( );		
+	}
+
+
+	/**
+	 * execute the real filter
+	 */
+	
+	_doFilter( ) {
+
+		if( !this.data || !this.data.length || !this.filter_fields ) {
+			return;
+		}
+
+		// create the comparison function
+		let filter = this._buildFilters( this.filter_fields );
+		
+		// prepare the index
+		let index = this._prepareIndex( );
+
+		//	do sort
+		index = index.filter( filter );
+
+		// and keep it
+		this.index = index;
+	}
+
+	/**
+	 * 
+	 */
+	
+	_buildFilters( fields ) {
+
+		let filters = [];
+
+		for( let f=0; f<fields.length; f++ ) {
+			let filter = new DataFilter( this, fields[f] );
+			filters.push( filter );
+		}
+
+		let length = filters.length;
+		if( length==1 ) {
+			return filters[0]._filter.bind(filters[0]);
+		}
+            
+		return function( i1 ) {
+
+            if( !filters[0]._filter( i1 ) ) {
+            	return false;
+            }
+            
+            for( let i=1; i<length; i++ ) {
+                if( !filters[i]._filter( i1 ) ) {
+                	return false;
+                }
+            }
+
+            return	true;
+        }
+	}
+
+
+	/**
+	 * sort the data model
+	 *
+	 * if field is a string, just sort by the field using dir as direction ('ASC' or 'DESC')
+	 * field can also be an object { field, dir, transform, fn }
+	 * field can also be an array or object as describe just before
+	 */
+	
+	sort( field, dir ) {
+
+		let fields;
+
+		// init sorting infos
+		if( isString(field) ) {
+			fields	 = [{
+				field: field,
+				dir: dir || 'ASC'
+			}];
+		}
+		else if( isObject(field) ) {
+			fields = [field];
+		}
+		else if( isArray(field) ) {
+			fields = field;
+		}
+
+		this.sort_fields = fields;
+
+		this._doSort( );
+	}
+
+	/**
+	 * do the real sort 
+	 */
+	
+	_doSort( ) {
+
+		if( !this.data || !this.data.length || !this.sort_fields ) {
+			return;
+		}
+
+		// create the comparison function
+		let sorter = this._buildSorter( this.sort_fields );
+		
+		// prepare the index
+		let index  = this._prepareIndex( );
+
+		//	do sort
+		index.sort( sorter );
+
+		// and keep it
+		this.index = index;
+	}
+
+	/**
+	 * clear the sort created by sort
+	 */
+
+	clearSort( ) {
+		this.index = null;
+		this.sort_fields = null;
+	}
+
+
+	_prepareIndex( ) {
+		
+		let index  = new Int32Array( this.getCount() );
+
+		if( this.index ) {
+			//	just copy it
+			let idx = this.index,
+				n   = idx.length,
+				i;
+
+			for( i=0; i<n; i++ ) {
+				index[i] = idx[i];
+			}
+		}  
+		else {
+			//	just build it sequentially
+			let n   = this.data.length,
+				i;
+
+			for( i=0; i<n; i++ ) {
+				index[i] = i;
+			}
+		}
+
+		return index;
+	}
+	
+	/**
+	 * 
+	 */
+	
+	_buildSorter( fields ) {
+
+		let sorters = [];
+
+		for( let f=0; f<fields.length; f++ ) {
+			let sorter = new DataSorter( this, fields[f] );
+			sorters.push( sorter );
+		}
+
+		let length = sorters.length;                
+		if( length==1 ) {
+			return sorters[0]._sort_fn.bind(sorters[0]);
+		}
+            
+		return function( i1, i2 ) {
+            let result = sorters[0]._sort_fn( i1, i2 );
+            if( result!=0 ) {
+            	return result
+            }
+
+			for( let i=1; i<length; i++ ) {
+                result = sorters[i]._sort_fn( i1, i2 );
+                if( result ) {
+                	return result;
+                }
+            }
+
+            return	0;
+        }
+	}
+
+	/**
+	 * 
+	 */
+	
 	load( data ) {
 		this.data 	= this.reader.readRecords(data);
+		this.index 	= null;
+
+		if( this.filter_fields ) {
+			this._doFilter( );
+		}
+
+		if( this.sort_fields ) {
+			this._doSort( );
+		}
+
 	}
 
 	getCount( ) {
+		if( this.index ) {
+			return this.index.length;
+		}
+
 		return this.data ? this.data.length : 0;
 	}
 
 	getAt( index ) {
 
-		let data = this.data;
-
-		if( !data ) {
+		if( !this.data || index<0 || index>=this.getCount() ) {
 			return;
 		}
 
-		if( index<0 || index>=this.data.length ) {
-			return;
+		if( this.index ) {
+			return this.data[this.index[index]];
 		}
+		else {
+			return this.data[index];	
+		}
+	}
 
-		return this.data[index];
+	_get( index ) {
+		return this.data[index];	
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
