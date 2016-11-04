@@ -119,7 +119,7 @@
 	}
 
 
-	function Alert( {title,message,icon} ) {
+	function alert( {title,message,icon} ) {
 
 		let ic = new Icon({glyph:icon,size:48});
 
@@ -172,6 +172,6 @@
 	}
 
 	$$.Window = Window;
-	$$.Alert = Alert;
+	$$.Exact.alert = alert;
 
 })( window || this );
