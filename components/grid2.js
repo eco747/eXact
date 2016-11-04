@@ -24,7 +24,7 @@
 		}
 
 		render( ) {
-			let { top, height, index } = this._data;
+			let { top, height, index, visible } = this._data;
 			
 			let cells = [],
 				rec = this.store.getAt( index ),
@@ -43,12 +43,23 @@
 					}
 					else {
 						style.flexGrow = col.flex ? col.flex : 1;
+						style.width = 1;
+					}
+
+					let content;
+					if( col.index ) {
+						content = model._get(col.index,rec).toString();
+					}
+
+					if( col.renderer ) {
+						content = col.renderer( content, model, rec );
+						content = content || '';
 					}
 
 					let cell = {
 						cls: 'x-cell',
 						style: style,
-						content: model._get(col.index,rec).toString()	
+						items: content,	
 					};
 
 					cells.push( cell );
@@ -62,12 +73,9 @@
 				width: '100%',
 			};
 
-			if( !this._data.visible ) {
-				style.display = 'non';
-			}
-
 			return {
 				cls: 'x-box ' + ((index%2)==0 ? 'x-odd' : ''),
+				hidden: !visible,
 				style: style,
 				items: cells
 			}
@@ -79,7 +87,7 @@
 	 * TODO: put in inside a container
 	 */
 
-	class 	Header extends Row
+	class 	Header extends Component
 	{
 		constructor( columns ) {
 			super( );
@@ -90,6 +98,9 @@
 			});
 
 			this.columns = columns;
+			
+			// you will be able to listen these events
+			this.addEvents( 'headerclick' );
 		}
 
 		render( ) {
@@ -109,13 +120,33 @@
 				}
 				else {
 					style.flexGrow = col.flex ? col.flex : 1;
+					style.width = 1;
 				}
+
+				let sorter;
+
+				if( col._sorted ) {
+					sorter = {
+						cls: 'x-sort ' + col._sorted.toLowerCase( )
+					};
+				}
+
 
 				let itm = {
 					cls: 'x-cell',
 					style: style,
-					content: cols[c].title || ''
+					items: [{
+							style: {display: 'inline-block'},
+							content: cols[c].title || ''
+						},
+						sorter,
+					]
 				};
+
+				if( col.sortable ) {
+					itm.style.cursor = 'pointer';
+					itm.onclick = this.onItemClick.bind( this, col );
+				}
 
 				items.push( itm );
 			}
@@ -127,9 +158,14 @@
 			};
 
 			return {
+				cls: 'x-box',
 				style: main_style,
 				items: items
 			}
+		}
+
+		onItemClick( col ) {
+			this.fireEvent( 'headerclick', col );
 		}
 	}
 
@@ -184,22 +220,16 @@
 			this._dom = dom;  			
 		}
 
-		afterMount() {
-			this.content.renderTo( this._dom );
-		}
-
-		afterUpdate() {
-			this.content.renderTo( this._dom );
-		}
-
 		render( ) {
 
 			return {
 				ref: this.acquireRef.bind(this),
+				flex: 1,
 				style: {
 					overflow: 'auto',
-					flexGrow: 1,
-					boxSizing: 'border-box'
+					boxSizing: 'border-box',
+					left: 0,
+					right: 0,
 				},
 				
 				onscroll: 	this._data.onScroll,
@@ -214,8 +244,8 @@
 
 	class 	Grid extends Component
 	{
-		constructor( {store, columns } ) {
-			super( );
+		constructor( {store, columns, style } ) {
+			super( arguments[0] );
 
 			this.setDataModel({
 				rowHeight: 40
@@ -232,10 +262,6 @@
 			this.retrig 	= 0;
 
 			this.totalHeight 	= store.getCount( ) * this._data.rowHeight;
-
-			this.hasFlex 		= false;
-			this.totalWidth  	= this._calcHWidth( );
-			this.flexWidth 		= 0;
 			this.updateTitle 	= true;
 
 			this.viewport.setOnScroll( this._onScroll.bind(this) );
@@ -245,10 +271,30 @@
 			this.rowPool	= [];
 			this.scrollTop  = 0;
 			this.lastScrollTop = -1;
+
+			this.header.addListener( 'headerclick', this._sortCol.bind(this) );
 		}
 
-		_calcHWidth( ) {
+		_sortCol( col ) {
 
+			let dir = 'ASC';
+			if( col._sorted ) {
+				if( col._sorted=='ASC' ) {
+					dir = 'DESC';
+				}
+			}
+
+			for( let i=0; i<this.columns.length; i++ ) {
+				this.columns[i]._sorted = undefined;
+			}
+
+			this.store.sort( col.index, dir );
+			col._sorted = dir;
+
+			this._refresh( );
+		}
+
+		_calcWidth( ) {
 			let cols = this.columns,
 				n = cols.length,
 				full = 0,
@@ -270,6 +316,18 @@
 			}
 
 			return full;
+		}
+
+		afterMount( ) {
+			asap( this._refreshRows, this );
+		}
+
+		afterUpdate() {
+			asap( this._refreshRows, this );
+		}
+
+		_refreshRows( ) {
+			this.content.renderTo( this.viewport._dom );
 		}
 
 		_onScroll( event ) {
@@ -308,8 +366,11 @@
 
 			// update hz sizes if flex columns
 			if( (this.hasFlex && this.totalWidth<width && this.flexWidth!=width) ) {
-				this.header.setTotalWidth( this.viewport._dom.clientWidth );
-				this.content.setTotalWidth( width );
+
+				let dom = this._getDOM( );
+
+				this.header.setTotalWidth( width-1 );
+				this.content.setTotalWidth( width-1 );
 				this.flexWidth = width;
 				this.updateTitle = false;
 			}
@@ -329,7 +390,7 @@
 
 			let scrollUp = (idxTop*rowHeight)<this.lastScrollTop;
 			
-			const overscan = 80;
+			const overscan = 5;
 			if( scrollUp ) {
 				overscan_before = overscan;
 				overscan_after  = 0;
@@ -430,11 +491,17 @@
 		}
 
 		render( ) {
+
+			this.rowPool = [];
+			this.hasFlex 		= false;
+			this.totalWidth  	= this._calcWidth( );
+			this.flexWidth 		= 0;
+
 			return {
 				style: {
-					width: '100%',
 					overflow: 'hidden',
 				},
+				layout: 'vertical',
 				items: [
 					this.header,
 					this.viewport

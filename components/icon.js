@@ -38,6 +38,8 @@ class Icon extends Component
 			tag: 'i',
 			cls: cls,
 			style: {
+				width: size,
+				height: size,
 				fontSize: size,
 			}
 		}

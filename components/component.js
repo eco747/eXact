@@ -4,8 +4,52 @@
 		'tag': true,
 		'cls': true,
 		'items': true,
-		'content': true
+		'content': true,
+		'layout': true,
+		'flex': true,
+		'hidden': true,
 	};
+
+	const 	shortcuts = {
+		'width': true,
+		'height': true,
+		'left': true,
+		'top': true,
+	};
+
+
+	class 	Event
+	{
+		constructor( name ) {
+			this.name = name;
+			this.observers = [];
+		}
+
+		add( o ) {
+			this.observers.push( o );
+		}
+
+		remove( o ) {
+			let idx = this.observers.indexOf( o );
+			if( idx<0 ) {
+				console.log( 'Unknown observer:', o );
+			}
+			else {
+				this.observers.splice( idx, 1 );
+			}
+		}
+
+		fire( e ) {
+
+			let obs = this.observers.slice( 0 ),
+				n = obs.length;
+
+			for( let i=0; i<n; i++ ) {
+				obs[i]( e );
+			}
+		}
+	}
+
 
 	/**
 	 * Base Component Object
@@ -13,10 +57,11 @@
 
 	class  Component 
 	{
-		constructor( ) {
+		constructor( cfg ) {
+
 			this._ 			= new React.Component( );
 			this._.__debug 	= this.constructor.name;				
-						
+									
 			// setup react callbacks
 			this._.render 				= ( ) => {return this._render( );}
 			this._.componentWillMount   = ( ) => {return this._beforeMount( ); }
@@ -28,13 +73,86 @@
 		
 			// generate our component classname
 			this._clsName	= 'x-' + kebabCase(this.constructor.name);
-			this._defStyle 	= null;
+			this._defStyle 	= this._parseStyle( cfg );
 			this._chg_id 	= 1;
 
 			this._data 		= null;		// real data
 			this._watched 	= null;		// generated properties
 			this._updates 	= {};
+			this._events 	= {};
 			this._needup 	= false;
+		}
+
+
+		addEvents( events ) {
+			if( isString(events) ) {
+				events = [events];
+			}
+
+			let n = events.length,
+				i;
+
+			for( i=0; i<n; i++ ) {
+				let name = events[i];
+
+				// already known ?
+				if( this._events[name] ) {
+					continue;
+				}
+
+				this._events[name] = new Event(events[i]);
+			}
+		}
+
+		fireEvent( name, e ) {
+			let ev = this._events[name]
+			if( ev ) {
+				ev.fire( e );
+				return;
+			}
+			else {
+				console.log( 'Unknown event:', name );
+			}
+		}
+
+		addListener( name, fn ) {
+			if( !isString(name) ) {
+				debugger;
+			}
+
+			let ev = this._events[name];
+			if( ev ) {
+				ev.add( fn );
+				return;
+			}
+			else {
+				console.log( 'Unknown event:', name );
+			}
+		}
+
+		removeListener( name, fn ) {
+			if( !isString(name) ) {
+				debugger;
+			}
+
+			let ev = this._events[name]
+			if( ev ) {
+				ev.remove( fn );
+				return;
+			}
+			else {
+				console.log( 'Unknown event:', name );
+			}
+		}
+
+		_findEvent( name ) {
+
+			let evts = this.events;
+			for( let i in evts ) {
+				if( evts[i].name==name ) {
+					return evts[i];
+				}
+			}	
 		}
 
 		/**
@@ -65,27 +183,28 @@
 			}
 			
 			props.className = cls;
-
+			
 			// next attributes
 			// 	copy all but the one that need to be processed
-			props.attrs = [];
+			//props.attrs = [];
 
 			for( i in desc ) {
-				if( !desc.hasOwnProperty(i) ||
-					skipped_attrs[i] ) {
+				if( !desc.hasOwnProperty(i) || skipped_attrs[i] || shortcuts[i] ) {
 					continue;
 				}
 
 				props[i] = desc[i];
 			}
 
-			//  merge defStyle with assigned style
-			if( this._defStyle ) {
-				if( props.style ) {
-					props.style = Object.assign( this._defStyle, props.style ); // given style win.
-				}
-				else {
-					props.style = this._defStyle;
+			props.style = this._parseStyle(desc);
+			
+			if( lvl==0 ) {
+
+				// merge undefined styles from def style
+				for( i in this._defStyle ) {
+					if( this._defStyle.hasOwnProperty(i) && !props.style.hasOwnProperty(i) ) {
+						props.style[i] = this._defStyle[i];
+					}
 				}
 			}
 
@@ -144,6 +263,65 @@
 
 			return React.createElement( tag, props, items );
 		}
+
+		/**
+		 * 
+		 */
+		_parseStyle( cfg ) {
+
+			let style = {};
+			if( !cfg ) {
+				return style;
+			}
+
+			// shortcuts
+			for( let i in shortcuts ) {
+				if( cfg.hasOwnProperty(i) ) {
+					style[i] = cfg[i];
+				}
+			}
+			
+			// next: layout
+			if( cfg.layout ) {
+
+				let layout = cfg.layout;
+
+				if( isString(layout) ) {
+					layout = { type: layout };
+				}
+
+				switch( cfg.layout ) {
+					case 'vertical': {
+						style.display = 'flex'; 
+						style.flexDirection = 'column';
+						break;
+					}
+
+					case 'horizontal': {
+						style.display = 'flex';
+						style.flexDirection = 'row'; 
+						break;
+					}
+				}
+			}
+
+			// next specific
+			if( cfg.flex ) {
+				style.flexGrow = cfg.flex;
+			}
+
+			if( cfg.hidden ) {
+				 style.display = 'none';
+			}
+
+
+			if( cfg.style ) {
+				style = Object.assign( style, cfg.style );
+			}
+
+			return style;
+		}
+
 
 		/**
 		 * 
@@ -342,6 +520,10 @@
 			else {
 				this._.setState( {_:this._chg_id++} );
 			}
+		}
+
+		_getDOM( ) {
+			return React.findDOMNode( this._ );
 		}
 	}
 

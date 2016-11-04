@@ -39,7 +39,7 @@ window.onload = function( ) {
 
 			let data = [];
 			for( let i=0; i<10000; i++ ) {
-				data.push( { first_name: i + ' - John', last_name: 'Doe', address: i + ', rue des Alouettes', num: Math.random()*1000 } );
+				data.push( { first_name: 'John', last_name: 'Doe', address: i + ', rue des Alouettes', num: Math.random()*1000 } );
 			}
 
 			let store = new DataStore( { 
@@ -52,12 +52,27 @@ window.onload = function( ) {
 			store.sort( [{field:'num'}] );
 
 
+			function renderCell( ) {
+				//	content, model, rec
+				return {
+					style: {
+						borderRadius: 20,
+						backgroundColor: '#BF360C',
+						width: 20,
+						height: 20
+					}
+				}
+			}
+
 			this.grid		= new Grid( {
 				store: store,
+				flex: 1,
 				columns: [
+					{ title: 'Id', 		   sortable: true, index: 'id', width: 50 },
 					{ title: 'First name', index: 'first_name', width: 400 },
 					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
-					{ title: 'Address',    index: 'address', flex: 1 },
+					{ title: 'Address',    sortable: true, index: 'address', flex: 1 },
+					{ title: 'Renderer',   renderer: renderCell, flex: 1 },
 					{ title: 'Number', 	   index: 'num', width: 100 },
 				]
 			});
@@ -70,9 +85,17 @@ window.onload = function( ) {
 		render( ) {
 			return {
 				cls: 'x-nosel',
+				layout: 'vertical',
 				items: [
 					this.header,
-					this.grid,
+					{
+						layout: 'horizontal',
+						flex: 1,
+						items: [
+							new Panel({width:300}),
+							this.grid,
+						]
+					},
 					this.botbar
 				]
 			};
