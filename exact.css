@@ -87,6 +87,7 @@ body {
   display: flex;
   flex-direction: row;
   min-height: fit-content;
+  min-height: -webkit-fit-content;
   border-bottom: 1px solid black;
   font-weight: bold;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
