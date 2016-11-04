@@ -82,7 +82,7 @@ We will do small changes to be able to access the AppBar datas. First we need a 
             super( );
             
             // create our app bar and set title
-            this.app_bar = new AppBar( 'ReactX Application' );
+            this.app_bar = new AppBar( {title:'ReactX Application'} );
         }
 ```
 
@@ -108,18 +108,14 @@ Wait, just look at that code we will add in the constructor:
             super( );
             
             // create our app bar and set title
-            this.app_bar = new AppBar( 'ReactX Application' );
+            this.app_bar = new AppBar( {title:'ReactX Application'} );
             
             // every second (1000ms), change the app title to display time
-            //  'onInterval' can be used for that
-            onInterval( 1000, function() { 
-                this.app_bar.title = 'ReactX Application' + new Date().toLocaleTime(); 
-            });
+            setInterval( () => { 
+                this.app_bar.setTitle( 'ReactX Application ' + new Date().toLocaleTime() ); 
+            }, 1000 );
         }
 ```
-
-Woo, the time is displayed dynamically, just when I change `app_bar.title` ?  
-Yes, in **eXact**, some members changes immediatly update elements.  
 
 By the way, if you change the timer down to 10ms, look at the tree changes in your browser dev tools, the node is changed only when the content change - not always.
 
@@ -130,21 +126,14 @@ Now, we will add some buttons in our BottomNavigationBar:
             super( );
             
             // create our app bar and set title
-            this.app_bar = new AppBar( );
-            this.app_bar.title = 'ReactX Application';
+            this.app_bar = new AppBar( {title:'ReactX Application'} );
             
             //  create our bottom bar and add buttons
             this.bot_bar = new BottomNavigationBar( );
-            this.bot_bar.buttons = [
-                new BottomNavigationItem( 'Recent', 'fa@undo' );
-                new BottomNavigationItem( 'Bluetooth', 'fa@bluetooth' );
-            ];
-            
-            // every second (1000ms), change the app title to display time
-            //  'onInterval' can be used for that
-            this.onInterval( 1000, function() { 
-                this.app_bar.title = 'ReactX Application' + new Date().toLocaleTime(); 
-            });
+            this.bot_bar.setButtons( [
+                new BottomNavigationItem( {title:'Recent', icon:'fa@undo'} );
+                new BottomNavigationItem( {title:'Bluetooth', icon:'fa@bluetooth'} );
+            ] );
         }
 ```
 We also need to change our `onRender` method to use our `bot_bar`.
@@ -162,6 +151,35 @@ We also need to change our `onRender` method to use our `bot_bar`.
 
 What are the 'fa@undo' & 'fa@bluetooth' parameters of BottomNavigationItem elements ?  
 **eXact** is using [Font Awesome](fontawesome.org) and it's a simple way to say that the Item icon will use the `fa-undo` icon.
+
+Now we need to get notified when our botton 'Recent' button is clicked:
+
+we just change the BottomNavigationItem constructor parameters:
+
+```javascript
+        constructor( ) {
+            super( );
+            
+            // create our app bar and set title
+            this.app_bar = new AppBar( {title:'ReactX Application'} );
+            
+            //  create our bottom bar and add buttons
+            this.bot_bar = new BottomNavigationBar( );
+            this.bot_bar.setButtons( [
+                // here we have added onclick (we must use bind to keep this correctly set)
+                new BottomNavigationItem( {title:'Recent', icon:'fa@undo', onclick:this.onRecentClick.bind(this) } );
+                new BottomNavigationItem( {title:'Bluetooth', icon:'fa@bluetooth'} );
+            ] );
+        }
+
+        onRecentClick( ) {
+            // we show the standard message
+            Exact.alert( {title:'Alert !', message: 'Recent button clicked'} );
+        }
+
+```
+
+
 
 
 
