@@ -28,9 +28,13 @@ Just create a file named app.js
     
         /**
          * rendering
+         * this method is called when the component need to be repainted
+         * we will see later the syntax more in detail.
+         * for now just see that we design the html in json format (by default it's a div)
+         * and items are the sub elements.
          */
          
-        onRender( ) {
+        render( ) {
             return {
                 items: [
                     AppBar,             // we just need an application bar
@@ -72,7 +76,7 @@ Ok, just open your html & you will get a nice application with an empty title & 
 
 ##### How does it works ?
 
-When needed, **eXact** call `onRender` to render the elements. You can see that we have returned an object, with a simple array `items` inside. We just put AppBar constructor and BottomNavigationBar, it understand that he have to create these classes and render them. 
+When needed, **eXact** call `render` to render the elements. You can see that we have returned an object, with a simple array `items` inside. We just put AppBar constructor and BottomNavigationBar, it understand that he have to create these classes and render them. 
 
 ##### What is the application title, how to change it, how to define buttons in the bottom bar ?
 We will do small changes to be able to access the AppBar datas. First we need a variable, in the App constructor, we will create it.
@@ -86,10 +90,10 @@ We will do small changes to be able to access the AppBar datas. First we need a 
         }
 ```
 
-We also need to change our `onRender` method to use our `app_bar`.
+We also need to change our `render` method to use our `app_bar`.
 
 ```javascript
-    onRender( ) {
+    render( ) {
         return {
             items: [
                 this.app_bar,       // this time we put our member
@@ -136,10 +140,10 @@ Now, we will add some buttons in our BottomNavigationBar:
             ] );
         }
 ```
-We also need to change our `onRender` method to use our `bot_bar`.
+We also need to change our `render` method to use our `bot_bar`.
 
 ```javascript
-    onRender( ) {
+    render( ) {
         return {
             items: [
                 this.app_bar,       // this time we put our member
