@@ -319,7 +319,7 @@
 		}
 
 		afterMount( ) {
-			asap( this._refreshRows, this );
+			this._refreshRows( );
 		}
 
 		afterUpdate() {
