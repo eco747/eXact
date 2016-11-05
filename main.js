@@ -161,13 +161,6 @@ window.onload = function( ) {
 	app.renderTo(document.body);
 
 	window.addEventListener( 'resize', app._refresh.bind(app) );
-
-	new Ajax.Request({
-		url: 'https://httpbin.org/get',
-		params: {
-			test: [1,2,3,4,5,"rrr"]
-		}
-	});
 }
 
 
