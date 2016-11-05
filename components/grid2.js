@@ -147,7 +147,7 @@
 					itm.style.cursor = 'pointer';
 					itm.onclick = this.onItemClick.bind( this, col );
 				}
-
+				
 				items.push( itm );
 			}
 
