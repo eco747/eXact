@@ -8,6 +8,7 @@
 		'layout': true,
 		'flex': true,
 		'hidden': true,
+		'layoutDir': true,
 	};
 
 	const 	shortcuts = {
@@ -17,6 +18,11 @@
 		'top': true,
 	};
 
+	/**
+	 * Event class 
+	 * an event is defined by it's name
+	 * and contains obervers
+	 */
 
 	class 	Event
 	{
@@ -61,6 +67,7 @@
 
 			this._ 			= new React.Component( );
 			this._.__debug 	= this.constructor.name;				
+			this._config 	= cfg || {};
 									
 			// setup react callbacks
 			this._.render 				= ( ) => {return this._render( );}
@@ -80,7 +87,6 @@
 			this._watched 	= null;		// generated properties
 			this._updates 	= {};
 			this._events 	= {};
-			this._needup 	= false;
 		}
 
 
@@ -161,7 +167,7 @@
 		 * @return {Object} Vue object
 		 */
 		
-		emit( desc, lvl=0 ) {
+		_emit( desc, lvl=0 ) {
 			
 			if( !desc ) {
 				return null;
@@ -181,8 +187,10 @@
 			if( desc.cls) {
 				cls += ' ' + desc.cls;
 			}
-			
-			props.className = cls;
+		
+			if( cls ) {	
+				props.className = cls;
+			}
 			
 			// next attributes
 			// 	copy all but the one that need to be processed
@@ -240,7 +248,7 @@
 							items.push( React.createElement( child ) );	
 						}
 						else if( isObject(child) ) {
-							items.push( this.emit(child,lvl+1) );
+							items.push( this._emit(child,lvl+1) );
 						}
 					}
 				}
@@ -303,6 +311,10 @@
 						break;
 					}
 				}
+
+				if( cfg.layoutDir ) {
+					style.justifyContent = 'flex-' + cfg.layoutDir;
+				}				
 			}
 
 			// next specific
@@ -368,7 +380,7 @@
 		_render( ) {
 			try {
 				//console.log( 'rendering: ', this.constructor.name );
-				return this.emit( this.render() );
+				return this._emit( this.render() );
 			}
 			catch( e ) {
 				debugger;

@@ -77,6 +77,24 @@ window.onload = function( ) {
 				]
 			});
 
+			let dlg = {
+				layout: 'vertical',
+				items: [
+					new TextField({label:'Filter',labelAlign:'top',value:'',textHint:'Select name to filter'}),
+					{
+						layout: 'horizontal',
+						layoutDir: 'end',
+						items: new Button({title:'OK',width:50}),
+					},
+					{
+						layout: 'horizontal',
+						items: new CheckBox({label:'Auto Refresh'}),	// changed icon just to play
+					}
+				]
+			};
+
+			this.panel = new Panel( {width: 300, content: dlg} );
+
 //			setInterval( function() {
 //				b2.setTitle( new Date().toLocaleString() );
 //			}, 1000 );
@@ -92,7 +110,7 @@ window.onload = function( ) {
 						layout: 'horizontal',
 						flex: 1,
 						items: [
-							new Panel({width:300}),
+							this.panel,
 							this.grid,
 						]
 					},
@@ -119,15 +137,6 @@ window.onload = function( ) {
 
 	window.addEventListener( 'resize', app._refresh.bind(app) );
 }
-
-
-
-
-
-
-
-
-
 
 
 

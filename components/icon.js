@@ -5,14 +5,14 @@
 
 class Icon extends Component
 {
-	constructor( {glyph,size} ) {
-		super( );
+	constructor( ...a ) {
+		super( ...a );
 
 		this.re_glyph = /(\w+)\@([\w_-]+)/;
 
 		this.setDataModel( {
-			glyph: glyph,		
-			size: size
+			glyph: this._config.glyph,		
+			size: this._config.size
 		} );
 	}
 
@@ -22,7 +22,6 @@ class Icon extends Component
 			cls;
 
 		if( !glyph ) {
-			debugger;
 			return null;
 		}
 

@@ -26,3 +26,4 @@ class AppBar extends Component
 		};
 	}
 }
+

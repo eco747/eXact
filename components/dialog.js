@@ -139,9 +139,6 @@
 				{
 					style: {
 						paddingRight: 32,
-						__direct: {
-							__html: '<rr></rr>',
-						},
 					},
 					items: ic,
 				},

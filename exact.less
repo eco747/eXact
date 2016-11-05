@@ -42,7 +42,7 @@ body {
 	align-items: center;
 	padding: 0 8px;
 	color: white;
-	background-color: rgb(0, 188, 212);
+	background-color: #00bcd4;
 	min-height: min-content;
 	min-height: -webkit-min-content;
 	
@@ -195,4 +195,71 @@ body {
     		font-size: 16px;
     	}
     }
+}
+
+.x-text-field
+{
+	font-size: 13px;
+
+	.x-label {
+		box-sizing: border-box;	
+		padding: 4px 0 1px 0;
+		border-bottom: 1px solid transparent;
+		margin: 4px 0;
+
+		&.x-required:before {
+			content:'*'
+		}
+	}
+
+	.x-label.x-vert {
+		margin-bottom: 0;
+	}
+
+	input {
+		box-sizing: border-box;
+      	border: none;
+		border-bottom: 1px solid #bdbdbd;
+		outline: none;
+      	background-color: transparent;
+      	margin: 4px 0;
+      	padding: 4px 0 1px 0;
+	}
+
+	input:focus {
+		border-bottom: 1px solid #00bcd4;
+	}
+
+	input.x-error {
+		border-bottom: 1px solid #bf360c;	
+	}
+
+	input.x-vert {
+		margin-top: 0;
+	}
+}
+
+.x-check-box {
+
+	padding: 4px 0;
+
+	.x-icon{
+		font-size: 14px;
+		color: #424242;
+	}
+
+	&.x-checked .x-icon{
+		color: #00bcd4;
+	}
+}
+
+.x-button {
+	box-sizing: border-box;
+	border: 1px solid #eeeeee;
+	padding: 4px;
+
+	&:hover {
+		background-color: #00bcd4;
+		color: #ffffff;
+	}
 }

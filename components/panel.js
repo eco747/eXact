@@ -2,16 +2,20 @@
 
 class 	Panel extends Component
 {
-	constructor( {width} ) {
-		super( );
+	constructor( ...a ) {
+		super( ...a );
 
 		this._defStyle = {
-			width: width,
+			width: this._config.width,
 			borderRight: '1px solid #000',
+			boxSizing: 'border-box',
+			padding: 8
 		};
 	}
 
 	render( ) {
-		return  {};
+		return  {
+			items: this._config.content
+		};
 	}
 }
