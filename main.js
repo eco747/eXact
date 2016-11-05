@@ -124,10 +124,14 @@ window.onload = function( ) {
 			function renderCell( _, m, r ) {
 				//	content, model, rec
 				let id = m._get( 'id', r);
+
 				return {
 					style: {
 						borderRadius: 20,
 						backgroundColor: 'rgba(0,188,212,'+((id%100)/100)+')',
+						borderWidth: 1,
+						borderStyle: 'solid',
+						borderColor: 'rgb(0,188,212)',
 						width: 20,
 						height: 20
 					}
@@ -142,7 +146,7 @@ window.onload = function( ) {
 					{ title: 'First name', index: 'first_name', width: 400 },
 					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
 					{ title: 'Address',    sortable: true, index: 'address', flex: 1 },
-					{ title: 'Renderer',   renderer: renderCell, flex: 1 },
+					{ title: 'Renderer',   renderer: renderCell, width: 80 },
 					{ title: 'Number', 	   sortable: true, index: 'num', width: 150 },
 				]
 			});

@@ -163,7 +163,7 @@ class 	DataModel
 
 		// if idProperty is missing, generate it
 		if( !this._fields[this._idProperty] ) {
-			this._genField( this._idProperty, fid++ );
+			this._genField( {name:this._idProperty,type:'int'}, fid++ );
 		}
 	}
 
