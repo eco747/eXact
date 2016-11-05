@@ -5,6 +5,8 @@
 
 Care, **eXact** only works on modern browsers that can interpret ES6 javascript syntax, forget IE6.
 
+For a live demo, click [ here ] (https://eco747.github.io/eXact/main.html)
+
 
 ## Concept
 
