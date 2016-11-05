@@ -37,8 +37,10 @@
 	
 	class Window extends Component {
 
-		constructor( {title,frame,sizable,width,height,modal=true,closable=true,content} ) {
-			super( );
+		constructor( ...a ) {
+			super( ...a );
+
+			let {title,frame,sizable,width,height,modal=true,closable=true,content} = this._config;
 
 			this.root = null;
 			this.init = false;
@@ -53,10 +55,6 @@
 			if( title ) {
 				this.header = new WindowTitle( {title,closable} );
 			}
-
-//			setTimeout( () => {
-//				this.close( );
-//			}, 10000 );
 		}
 
 		show( ) {
@@ -67,7 +65,7 @@
 		}
 
 		close( ) {
-			if( this.root ) {
+			if( this.root && this.init ) {
 				React.unmountComponentAtNode(this.root);
 			    document.body.removeChild(this.root);
 			    this.init = false;
@@ -82,6 +80,14 @@
 		_createRootNode( ) {
 			// insert a div into which we will render
 			this.root = document.createElement( 'div' );
+
+			if( this._config.clickDismiss ) {
+				this.root.addEventListener( 'click', (e) => { 
+					if( e.target===this.root ) {
+						this.close(); 
+					}
+				});
+			}
 
 			if( this.modal ) {
 				// put it inside body 
@@ -119,13 +125,54 @@
 	}
 
 
-	function alert( {title,message,icon} ) {
+	function alert( cfg ) {
+		cfg.cls = 'x-alert';
+		if( !cfg.icon ) {
+			cfg.icon = 'fa@exclamation-triangle';
+		}
+
+		_display_box( cfg );
+	}
+
+	function warning( cfg ) {
+		cfg.cls = 'x-warning';
+
+
+		if( !cfg.icon ) {
+			cfg.icon = 'fa@exclamation-circle';
+		}
+		
+		_display_box( cfg );
+	}
+
+	function info( cfg ) {
+		cfg.cls = 'x-info';
+		_display_box( cfg );
+	}
+
+	function _display_box( {title,text,icon,autoClose,clickDismiss,cls,html} ) {
 
 		let 	ic = new Icon({glyph:icon,size:48});
 		let 	btn = new Button( {title: 'OK', width: 80, deffocus: true} );
 
+		let 	msg;
+
+		if( html ) {
+			msg = {
+				tag: 'p',
+				__direct: {
+					__html: html
+				}
+			}
+		}
+		else {
+			msg = text;	
+		}
+
+
 		let content = {
 			layout: 'vertical',
+			cls: cls,
 			style: {
 				paddingLeft: 32,
 				paddingRight: 32,
@@ -160,8 +207,10 @@
 									style: {
 										textAlign: 'justify',
 										userSelect: 'initial',
+										overflowY: 'auto',
+										maxHeight: 200,
 									},
-									content: message
+									items: msg
 								}
 							]
 						},
@@ -178,11 +227,26 @@
 		btn.on( 'click', () => {t.close();} )
 		
 
-		var t = new Window({content:content});
+		if( autoClose ) {
+			let tme = autoClose;
+			let xx = setInterval( ()=> {
+				tme--;
+				btn.setTitle( 'OK ('+tme+'s)' );
+				
+				if( tme<=0 ) {
+					clearInterval( xx );
+					t.close( );
+				}
+			}, 1000 );
+		}
+
+		var t = new Window({content:content,clickDismiss:clickDismiss});
 		t.show( );
 	}
 
 	$$.Window = Window;
 	$$.Exact.alert = alert;
+	$$.Exact.warning = warning;
+	$$.Exact.info = info;
 
 })( window || this );
