@@ -121,13 +121,12 @@
 
 	function alert( {title,message,icon} ) {
 
-		let ic = new Icon({glyph:icon,size:48});
+		let 	ic = new Icon({glyph:icon,size:48});
+		let 	btn = new Button( {title: 'OK', width: 80, deffocus: true} );
 
 		let content = {
+			layout: 'vertical',
 			style: {
-				display: 'flex',
-				flexDirection: 'row',
-				alignItems: 'center',
 				paddingLeft: 32,
 				paddingRight: 32,
 				paddingTop: 16,
@@ -137,32 +136,47 @@
 			},
 			items: [
 				{
-					style: {
-						paddingRight: 32,
-					},
-					items: ic,
-				},
-				{
-					style: {
-						flexGrow: 1,
-					},
+					layout: 'horizontal',
 					items: [
 						{
-							tag: 'h1',
-							content: title
+							layout: 'vertical',
+							layoutDir: 'center',
+							style: {
+								paddingRight: 32,
+							},
+							items: ic,
 						},
 						{
-							tag: 'p',
 							style: {
-								textAlign: 'justify',
-								userSelect: 'initial',
+								flexGrow: 1,
 							},
-							content: message
-						}
+							items: [
+								{
+									tag: 'h1',
+									content: title
+								},
+								{
+									tag: 'p',
+									style: {
+										textAlign: 'justify',
+										userSelect: 'initial',
+									},
+									content: message
+								}
+							]
+						},
 					]
+				},
+				{
+					layout: 'horizontal',
+					layoutDir: 'end',
+					items: btn
 				}
 			]
 		};
+
+		btn.on( 'click', () => {t.close();} )
+		
 
 		var t = new Window({content:content});
 		t.show( );

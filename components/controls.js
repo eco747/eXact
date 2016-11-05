@@ -22,13 +22,21 @@ class 	Button extends Component
 		let {title} = this._data;
 
 		return {
+			cls: (this._config.deffocus ? ' x-default': ''),
+			tabIndex: 1,
 			style: {
 				textAlign: 'center',
-				margin: 4,
 				cursor: 'pointer',
 			},
 			content: title,
 			onclick: this.onClick.bind(this),
+			onkeypress: this.onKey.bind(this),
+		}
+	}
+
+	onKey( e ) {
+		if( e.charCode==32 || e.charCode==13 ) {
+			this.fireEvent('click');	
 		}
 	}
 
@@ -61,7 +69,7 @@ class 	TextField extends Component
 
 		this.error = false;
 
-		this.addEvents('changed','blur','focus');
+		this.addEvents( ['changed','blur','focus'] );
 	}
 
 	render( ) {

@@ -18,6 +18,14 @@
 		'top': true,
 	};
 
+	const 	layout_dirs = {
+		'center': 'center',
+		'start': 'flex-start',
+		'end': 'flex-end',
+		'space-between': 'space-between',
+		'space-around': 'space-around'
+	};
+
 	/**
 	 * Event class 
 	 * an event is defined by it's name
@@ -136,6 +144,11 @@
 			}
 		}
 
+		// shortcut for addListener
+		on( ...a ) {
+			this.addListener( ...a );
+		}
+
 		removeListener( name, fn ) {
 			if( !isString(name) ) {
 				debugger;
@@ -151,6 +164,11 @@
 			}
 		}
 
+		// shortcut for removeListener
+		un( ...a ) {
+			this.removeListener( ...a );
+		}
+
 		_findEvent( name ) {
 
 			let evts = this.events;
@@ -163,6 +181,12 @@
 
 		/**
 		 * Emit the Json object definition in the React format
+		 *
+		 * 	layout: 
+		 * 		vertical, horizontal
+		 *	layoutDir:
+		 *		center, start, end, space-around, space-between
+		 * 
 		 * @param  {Object} JSon definition
 		 * @return {Object} Vue object
 		 */
@@ -313,7 +337,7 @@
 				}
 
 				if( cfg.layoutDir ) {
-					style.justifyContent = 'flex-' + cfg.layoutDir;
+					style.justifyContent = layout_dirs[cfg.layoutDir];
 				}				
 			}
 

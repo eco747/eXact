@@ -67,7 +67,7 @@ body {
 
     display: flex;
     justify-content: center;
-    background-color: #fff;
+    background-color: #f5f5f5;
     color: rgba(0, 0, 0, 0.541176);
     cursor: pointer;
 
@@ -258,8 +258,20 @@ body {
 	border: 1px solid #eeeeee;
 	padding: 4px;
 
+	&.x-default {
+		background-color: #0097A7;
+		font-weight: bold;
+		color: #ffffff;
+	}
+
 	&:hover {
 		background-color: #00bcd4;
 		color: #ffffff;
+	}
+
+	&:focus {
+		//box-shadow: 0 0 4px #006064;
+		border: 1px solid #00bcd4;
+		outline: none;
 	}
 }
