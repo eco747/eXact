@@ -403,9 +403,12 @@ class 	DataFilter
  *	TODO: observable
  */
 
-class 	DataStore 
+class 	DataStore extends Observable
 {
 	constructor( {model, reader, data } ) {
+		super( );
+
+		this.addEvents('change');
 		
 		this.model  = model;
 		this.data   = null;
@@ -461,68 +464,19 @@ class 	DataStore
 
 		this.filter_fields = fields;
 
-		this._doFilter( );		
-	}
-
-
-	/**
-	 * execute the real filter
-	 */
-	
-	_doFilter( ) {
-
-		if( !this.data || !this.data.length || !this.filter_fields ) {
-			return;
-		}
-
-		// create the comparison function
-		let filter = this._buildFilters( this.filter_fields );
-		
-		// prepare the index
-		let index = this._prepareIndex( );
-
-		//	do sort
-		index = index.filter( filter );
-
-		// and keep it
-		this.index = index;
+		this._recalcIndex( )
 	}
 
 	/**
-	 * 
+	 * clear the filters created by filter
 	 */
-	
-	_buildFilters( fields ) {
 
-		let filters = [];
+	clearFilters( ) {
 
-		for( let f=0; f<fields.length; f++ ) {
-			let filter = new DataFilter( this, fields[f] );
-			filters.push( filter );
-		}
-
-		let length = filters.length;
-		if( length==1 ) {
-			return filters[0]._filter.bind(filters[0]);
-		}
-            
-		return function( i1 ) {
-
-            if( !filters[0]._filter( i1 ) ) {
-            	return false;
-            }
-            
-            for( let i=1; i<length; i++ ) {
-                if( !filters[i]._filter( i1 ) ) {
-                	return false;
-                }
-            }
-
-            return	true;
-        }
+		this.filters_fields = null;
+		this._recalcIndex( );
 	}
-
-
+	
 	/**
 	 * sort the data model
 	 *
@@ -550,31 +504,7 @@ class 	DataStore
 		}
 
 		this.sort_fields = fields;
-
-		this._doSort( );
-	}
-
-	/**
-	 * do the real sort 
-	 */
-	
-	_doSort( ) {
-
-		if( !this.data || !this.data.length || !this.sort_fields ) {
-			return;
-		}
-
-		// create the comparison function
-		let sorter = this._buildSorter( this.sort_fields );
-		
-		// prepare the index
-		let index  = this._prepareIndex( );
-
-		//	do sort
-		index.sort( sorter );
-
-		// and keep it
-		this.index = index;
+		this._recalcIndex( );
 	}
 
 	/**
@@ -582,38 +512,101 @@ class 	DataStore
 	 */
 
 	clearSort( ) {
-		this.index = null;
 		this.sort_fields = null;
+		this._recalcIndex( );
 	}
 
+	/**
+	 * 
+	 */
+	
+	load( data ) {
+		this.data 	= this.reader.readRecords(data);
+		this._recalcIndex( );		
+	}
 
-	_prepareIndex( ) {
-		
-		let index  = new Int32Array( this.getCount() );
+	getCount( ) {
+		if( this.index ) {
+			return this.index.length;
+		}
+
+		return this.data ? this.data.length : 0;
+	}
+
+	getAt( index ) {
+
+		if( !this.data || index<0 || index>=this.getCount() ) {
+			return;
+		}
 
 		if( this.index ) {
-			//	just copy it
-			let idx = this.index,
-				n   = idx.length,
-				i;
-
-			for( i=0; i<n; i++ ) {
-				index[i] = idx[i];
-			}
-		}  
+			return this.data[this.index[index]];
+		}
 		else {
-			//	just build it sequentially
-			let n   = this.data.length,
-				i;
+			return this.data[index];	
+		}
+	}
 
-			for( i=0; i<n; i++ ) {
-				index[i] = i;
-			}
+	_recalcIndex( ) {
+
+		//	build it sequentially with seq indexes
+		let n   = this.data.length,
+			i;
+
+		let index = new Int32Array( n );
+		for( i=0; i<n; i++ ) {
+			index[i] = i;
+		}
+
+		index = this._doFilter( index );		
+		index = this._doSort( index );
+
+		// and keep it
+		this.index = index;
+		this.fireEvent('change');
+	}
+
+	/**
+	 * do the real sort 
+	 */
+	
+	_doSort( index ) {
+
+		if( !this.data || !this.data.length || !this.sort_fields ) {
+			return index;
+		}
+
+		// create the comparison function
+		let sorter = this._buildSorter( this.sort_fields );
+		
+		//	do sort
+		index.sort( sorter );
+
+		return index;
+	}
+
+	/**
+	 * execute the real filter
+	 */
+	
+	_doFilter( index ) {
+
+		if( !this.data || !this.data.length || !this.filter_fields ) {
+			return index;
+		}
+
+		// create the comparison function
+		let filter = this._buildFilters( this.filter_fields );
+		
+		if( filter ) {
+
+			//	do sort
+			index = index.filter( filter );	
 		}
 
 		return index;
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -652,41 +645,45 @@ class 	DataStore
 	/**
 	 * 
 	 */
-	
-	load( data ) {
-		this.data 	= this.reader.readRecords(data);
-		this.index 	= null;
+		
+	_buildFilters( fields ) {
 
-		if( this.filter_fields ) {
-			this._doFilter( );
+		let filters = [];
+
+		for( let f=0; f<fields.length; f++ ) {
+
+			let field = fields[f];
+			if( isNaN(field.value) || field.value===undefined ) {
+				continue;
+			}
+
+			let filter = new DataFilter( this, field );
+			filters.push( filter );
+		}		
+
+		let length = filters.length;
+		if( !length ) {
+			return null;
 		}
 
-		if( this.sort_fields ) {
-			this._doSort( );
+		if( length==1 ) {
+			return filters[0]._filter.bind(filters[0]);
 		}
+            
+		return function( i1 ) {
 
-	}
+            if( !filters[0]._filter( i1 ) ) {
+            	return false;
+            }
+            
+            for( let i=1; i<length; i++ ) {
+                if( !filters[i]._filter( i1 ) ) {
+                	return false;
+                }
+            }
 
-	getCount( ) {
-		if( this.index ) {
-			return this.index.length;
-		}
-
-		return this.data ? this.data.length : 0;
-	}
-
-	getAt( index ) {
-
-		if( !this.data || index<0 || index>=this.getCount() ) {
-			return;
-		}
-
-		if( this.index ) {
-			return this.data[this.index[index]];
-		}
-		else {
-			return this.data[index];	
-		}
+            return	true;
+        }
 	}
 
 	_get( index ) {

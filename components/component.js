@@ -64,36 +64,17 @@
 		}
 	}
 
-
 	/**
-	 * Base Component Object
+	 * Observable element
+	 * Every object extending this class can be observed
+	 * first the observed element declare the type of event it can generate using addEvents
+	 * then when needed it can fire events via fireEvent
+	 * every body that need to be notified can listen for any known events via addListener or more short 'on' method
 	 */
-
-	class  Component 
+	
+	class 	Observable
 	{
-		constructor( cfg ) {
-
-			this._ 			= new React.Component( );
-			this._.__debug 	= this.constructor.name;				
-			this._config 	= cfg || {};
-									
-			// setup react callbacks
-			this._.render 				= ( ) => {return this._render( );}
-			this._.componentWillMount   = ( ) => {return this._beforeMount( ); }
-			this._.componentDidMount    = ( ) => {return this._afterMount( ); }
-			this._.componentWillUnmount = ( ) => {return this._beforeUnmount( ); }
-			this._.componentDidUnmount  = ( ) => {return this._afterUnmount( ); }
-			this._.componentWillUpdate  = ( ) => {return this._beforeUpdate( ); }
-			this._.componentDidUpdate   = ( ) => {return this._afterUpdate( ); }
-		
-			// generate our component classname
-			this._clsName	= 'x-' + kebabCase(this.constructor.name);
-			this._defStyle 	= this._parseStyle( cfg );
-			this._chg_id 	= 1;
-
-			this._data 		= null;		// real data
-			this._watched 	= null;		// generated properties
-			this._updates 	= {};
+		constructor( ) {
 			this._events 	= {};
 		}
 
@@ -177,6 +158,42 @@
 					return evts[i];
 				}
 			}	
+		}
+
+	}
+
+
+	/**
+	 * Base Component Object
+	 */
+
+	class  Component extends Observable
+	{
+		constructor( cfg ) {
+			super( );
+
+			this._ 			= new React.Component( );
+			this._.__debug 	= this.constructor.name;				
+			this._config 	= cfg || {};
+									
+			// setup react callbacks
+			this._.render 				= ( ) => {return this._render( );}
+			this._.componentWillMount   = ( ) => {return this._beforeMount( ); }
+			this._.componentDidMount    = ( ) => {return this._afterMount( ); }
+			this._.componentWillUnmount = ( ) => {return this._beforeUnmount( ); }
+			this._.componentDidUnmount  = ( ) => {return this._afterUnmount( ); }
+			this._.componentWillUpdate  = ( ) => {return this._beforeUpdate( ); }
+			this._.componentDidUpdate   = ( ) => {return this._afterUpdate( ); }
+		
+			// generate our component classname
+			this._clsName	= 'x-' + kebabCase(this.constructor.name);
+			this._defStyle 	= this._parseStyle( cfg );
+			this._chg_id 	= 1;
+
+			this._data 		= null;		// real data
+			this._watched 	= null;		// generated properties
+			this._updates 	= {};
+			
 		}
 
 		/**
@@ -564,5 +581,6 @@
 	}
 
 	$$.Component = Component;
+	$$.Observable = Observable;
 
 })( window || this );

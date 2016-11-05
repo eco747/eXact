@@ -147,7 +147,7 @@
 					itm.style.cursor = 'pointer';
 					itm.onclick = this.onItemClick.bind( this, col );
 				}
-				
+
 				items.push( itm );
 			}
 
@@ -240,6 +240,13 @@
 
 	/**
 	 *
+	 * column:
+	 * 	title: string column title
+	 * 	sortable: boolean if click will sort the column
+	 * 	index: field name in the DataStore
+	 * 	width: size in pixels
+	 * 	renderer: function (value,model,record)
+	 * 	flex: number flex space
 	 */
 
 	class 	Grid extends Component
@@ -261,11 +268,9 @@
 			this.store 		= store;
 			this.retrig 	= 0;
 
-			this.totalHeight 	= store.getCount( ) * this._data.rowHeight;
 			this.updateTitle 	= true;
 
 			this.viewport.setOnScroll( this._onScroll.bind(this) );
-			this.content.setTotalHeight( this.totalHeight );
 			this.content.setRenderContent( this._renderRows.bind(this,true) );
 			
 			this.rowPool	= [];
@@ -273,6 +278,8 @@
 			this.lastScrollTop = -1;
 
 			this.header.addListener( 'headerclick', this._sortCol.bind(this) );
+
+			this.store.on('change', this._refresh.bind(this) );
 		}
 
 		_sortCol( col ) {
@@ -359,10 +366,17 @@
 				return null;				
 			}
 
-			let height  = this.viewport._dom.clientHeight,
-				width 	= this.viewport._dom.clientWidth,
-				rowHeight = this._data.rowHeight,
+			let height  		= this.viewport._dom.clientHeight,
+				width 			= this.viewport._dom.clientWidth,
+				rowHeight 		= this._data.rowHeight,
+				totalHeight 	= this.store.getCount( ) * this._data.rowHeight,
 				i;
+
+			// update content height
+			if( totalHeight!=this.totalHeight ) {
+				this.totalHeight 	= totalHeight;
+				this.content.setTotalHeight( this.totalHeight );			
+			}
 
 			// update hz sizes if flex columns
 			if( (this.hasFlex && this.totalWidth<width && this.flexWidth!=width) ) {

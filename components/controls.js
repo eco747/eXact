@@ -69,7 +69,7 @@ class 	TextField extends Component
 
 		this.error = false;
 
-		this.addEvents( ['changed','blur','focus'] );
+		this.addEvents( ['change','blur','focus'] );
 	}
 
 	render( ) {
@@ -101,7 +101,7 @@ class 	TextField extends Component
 				type: 'text',
 			},
 			placeholder: textHint,
-			onchange: ( e ) => { this.fireEvent('changed',e.target.value); },
+			onchange: ( e ) => { this.fireEvent('change',e.target.value); },
 			onblur: this.onBlur.bind(this),
 			onfocus: ( e ) => { this.fireEvent('focus',e); },
 		});

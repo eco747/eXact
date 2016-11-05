@@ -16,22 +16,7 @@ window.onload = function( ) {
 				icon:'fa@thermometer-empty'
 			});
 
-			let b1, b2;
-
-			this.botbar  	= new BottomNavigation({
-				buttons: [
-					b1 = new BottomNavigationItem({
-						title: 'Recent', 
-						icon: 'fa@undo',
-						onclick: this.recentClick.bind(this)
-					}),
-					b2 = new BottomNavigationItem({
-						title: 'BlueTooth', 
-						icon: 'fa@bluetooth',
-						onclick: this.alertClick.bind(this)
-					})
-				]
-			});
+			let botbar = this.createBotBar( );
 			
 			let model = new DataModel( {
 				fields: ['first_name', 'last_name', 'address', {name:'num',type:'float'}]
@@ -48,57 +33,8 @@ window.onload = function( ) {
 				reader: 'json'
 			} );
 
-			store.filter( [{field:'num',operator:'>', value: 420},{field:'num',operator:'<', value: 520}] );
-			store.sort( [{field:'num'}] );
-
-
-			function renderCell( _, m, r ) {
-				//	content, model, rec
-				let id = m._get( 'id', r);
-				return {
-					style: {
-						borderRadius: 20,
-						backgroundColor: 'rgba(0,188,212,'+((id%100)/100)+')',
-						width: 20,
-						height: 20
-					}
-				}
-			}
-
-			this.grid		= new Grid( {
-				store: store,
-				flex: 1,
-				columns: [
-					{ title: 'Id', 		   sortable: true, index: 'id', width: 50 },
-					{ title: 'First name', index: 'first_name', width: 400 },
-					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
-					{ title: 'Address',    sortable: true, index: 'address', flex: 1 },
-					{ title: 'Renderer',   renderer: renderCell, flex: 1 },
-					{ title: 'Number', 	   sortable: true, index: 'num', width: 100 },
-				]
-			});
-
-			let dlg = {
-				layout: 'vertical',
-				items: [
-					new TextField({label:'Filter',labelAlign:'top',value:'',textHint:'Select name to filter'}),
-					{
-						layout: 'horizontal',
-						layoutDir: 'end',
-						items: new Button({title:'OK',width:50}),
-					},
-					{
-						layout: 'horizontal',
-						items: new CheckBox({label:'Auto Refresh'}),	// changed icon just to play
-					}
-				]
-			};
-
-			this.panel = new Panel( {width: 300, content: dlg} );
-
-//			setInterval( function() {
-//				b2.setTitle( new Date().toLocaleString() );
-//			}, 1000 );
+			this.grid = this.createGrid( store );
+			this.panel = this.createPanel( store );
 		}
 
 		render( ) {
@@ -118,6 +54,97 @@ window.onload = function( ) {
 					this.botbar
 				]
 			};
+		}
+
+		createBotBar( ) {
+			return new BottomNavigation({
+				buttons: [
+					new BottomNavigationItem({
+						title: 'Recent', 
+						icon: 'fa@undo',
+						onclick: this.recentClick.bind(this)
+					}),
+					new BottomNavigationItem({
+						title: 'BlueTooth', 
+						icon: 'fa@bluetooth',
+						onclick: this.alertClick.bind(this)
+					})
+				]
+			});
+		}
+
+		/**
+		 * create then left panel
+		 * @param  {Grid} grid - the grid to work on
+		 * @return {Panel}       
+		 */
+		
+		createPanel( store ) {
+			let me = this;
+				
+			function doFilter( value ) {
+				store.filter( {
+					field: 'num',
+					operator: '>=',
+					value: parseFloat(value)
+				});
+			}
+
+			let edit = new TextField({label:'Filter on num >=',labelAlign:'top',value:'',textHint:'Enter a value'});
+			edit.on('change', doFilter );
+
+			let dlg = {
+				layout: 'vertical',
+				items: [
+					edit,
+					{
+						layout: 'horizontal',
+						layoutDir: 'end',
+						items: new Button({title:'OK',width:50}),
+					},
+					{
+						layout: 'horizontal',
+						items: new CheckBox({label:'Auto Refresh'}),	// changed icon just to play
+					}
+				]
+			};
+
+			return new Panel( {width: 300, content: dlg} );
+		}
+
+		/**
+		 * create the grid
+		 * @param  {DataStore} store - the store to show
+		 * @return {Grid}
+		 */
+		
+		createGrid( store ) {
+
+			function renderCell( _, m, r ) {
+				//	content, model, rec
+				let id = m._get( 'id', r);
+				return {
+					style: {
+						borderRadius: 20,
+						backgroundColor: 'rgba(0,188,212,'+((id%100)/100)+')',
+						width: 20,
+						height: 20
+					}
+				}
+			}
+
+			return new Grid( {
+				store: store,
+				flex: 1,
+				columns: [
+					{ title: 'Id', 		   sortable: true, index: 'id', width: 50 },
+					{ title: 'First name', index: 'first_name', width: 400 },
+					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
+					{ title: 'Address',    sortable: true, index: 'address', flex: 1 },
+					{ title: 'Renderer',   renderer: renderCell, flex: 1 },
+					{ title: 'Number', 	   sortable: true, index: 'num', width: 150 },
+				]
+			});
 		}
 
 		alertClick( ) {
