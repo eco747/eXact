@@ -35,6 +35,7 @@ window.onload = function( ) {
 
 			this.grid = this.createGrid( store );
 			this.panel = this.createPanel( store );
+			this.botbar = this.createBotBar( );
 		}
 
 		render( ) {
