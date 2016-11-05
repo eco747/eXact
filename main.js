@@ -160,10 +160,14 @@ window.onload = function( ) {
 	let app = new App();
 	app.renderTo(document.body);
 
-debugger;
-	let c = coerce( '88', 'number');
-
 	window.addEventListener( 'resize', app._refresh.bind(app) );
+
+	new Ajax.Request({
+		url: 'https://httpbin.org/get',
+		params: {
+			test: [1,2,3,4,5,"rrr"]
+		}
+	});
 }
 
 
