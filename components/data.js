@@ -5,6 +5,11 @@
 
 /**
  * Data field hold the description & access function to data fields.
+ * 	type:
+ * 		'string'
+ * 		'number'
+ * 		'boolean'
+ * 		'date'
  */
 
 class 	DataField
@@ -13,11 +18,8 @@ class 	DataField
 
 		this._name = name;
 		this._idx  = idx;
-
-		if( type ) {
-			this._type = type;
-		}
-
+		this._type = type || 'string';
+		
 		if( defValue ) {
 		 	this._defValue = defValue;
 		}
@@ -61,29 +63,7 @@ class 	DataField
 		
 		// forced type ?
 		if( _type ) {
-			switch( _type ) {
-				case 'string':
-					v = v===undefined ? v : v.toString( );
-					break;
-
-				case 'float':
-					if( isString(v) ) {
-						v = parseFloat(v);
-					}
-					break;
-
-				case 'int':
-					if( isString(v) ) {
-						v = parseInt(v);
-					}
-					break;
-
-				case 'boolean':
-					if( isString(v) ) {
-						v = v==='true';
-					}
-					break;
-			}
+			v = coerce( v, _type );
 		}
 
 		return v;
@@ -123,6 +103,22 @@ class 	DataModel
 		return this._get( name, this._raw );
 	}
 
+	set( name, value ) {
+		this._set( name, value, this._raw );
+	}
+
+	convert( rawData ) {
+
+		let record = [],
+			fields = this._fields;
+
+		for( let f in fields ) {
+			record.push( fields[f].get( rawData ) );
+		}
+
+		return record;
+	}
+
 	_get( name, buffer ) {
 
 		let f = this._fields[name];
@@ -132,11 +128,7 @@ class 	DataModel
 
 		return f.get( buffer );
 	}
-
-	set( name, value ) {
-		this._set( name, value, this._raw );
-	}
-
+	
 	_set( name, value, buffer ) {
 
 		let f = this._fields[name];
@@ -152,21 +144,10 @@ class 	DataModel
 	}
 
 	/**
-	 * generate acces functions
+	 * 
 	 */
 
 	_build( fields ) {
-
-		this.fields = {};
-
-		// remove old generated properties
-		let watched = Object.keys( this._watched ),
-			p;
-
-		for( p in watched ) {
-			delete this[p];
-			delete this._watched[p];
-		}
 
 		//	create new properties
 		let me 		= this, 
@@ -202,9 +183,6 @@ class 	DataModel
 		let iname = fld.name,
 			name = camelCase( iname, true );
 		
-		this['set' + name ] = ( value ) => {me.set(iname,value);}
-		this['get' + name ] = ( ) => { return me.get(iname);}
-
 		if( iname==this._idProperty ) {
 			fld.auto = () => { return this._gen_id++ };
 		}
@@ -213,20 +191,6 @@ class 	DataModel
 		let field 	= new DataField( fld );
 
 		this._fields[iname] = field; 
-		this._watched[name] = true;
-	}
-
-
-	convert( rawData ) {
-
-		let record = [],
-			fields = this._fields;
-
-		for( let f in fields ) {
-			record.push( fields[f].get( rawData ) );
-		}
-
-		return record;
 	}
 }
 
@@ -656,6 +620,14 @@ class 	DataStore extends Observable
 			if( isNaN(field.value) || field.value===undefined ) {
 				continue;
 			}
+
+			let model = this.model._fields[field.field];
+			if( !model ) {
+				console.log( 'Unknown field:', field.field );
+				continue;
+			}
+
+			field.value = coerce( field.value, model._type );
 
 			let filter = new DataFilter( this, field );
 			filters.push( filter );

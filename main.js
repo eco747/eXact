@@ -86,7 +86,7 @@ window.onload = function( ) {
 				store.filter( {
 					field: 'num',
 					operator: '>=',
-					value: parseFloat(value)
+					value: value
 				});
 			}
 
@@ -159,6 +159,9 @@ window.onload = function( ) {
 
 	let app = new App();
 	app.renderTo(document.body);
+
+debugger;
+	let c = coerce( '88', 'number');
 
 	window.addEventListener( 'resize', app._refresh.bind(app) );
 }
