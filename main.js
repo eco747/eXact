@@ -12,7 +12,7 @@ window.onload = function( ) {
 			super( );
 			
 			this.header 	= new AppBar({
-				title:'Application', 
+				title:'eXact', 
 				icon:'fa@thermometer-empty'
 			});
 
@@ -52,12 +52,13 @@ window.onload = function( ) {
 			store.sort( [{field:'num'}] );
 
 
-			function renderCell( ) {
+			function renderCell( _, m, r ) {
 				//	content, model, rec
+				let id = m._get( 'id', r);
 				return {
 					style: {
 						borderRadius: 20,
-						backgroundColor: '#BF360C',
+						backgroundColor: 'rgba(0,188,212,'+((id%100)/100)+')',
 						width: 20,
 						height: 20
 					}
