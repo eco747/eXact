@@ -12,7 +12,6 @@ class 	Panel extends Component
 			width: this._config.width,
 			borderRight: '1px solid #000',
 			boxSizing: 'border-box',
-			padding: 8,
 			position: 'relative'
 		};
 	}
@@ -25,10 +24,10 @@ class 	Panel extends Component
 			content.style = content.style || {};
 
 			content.style.position = 'absolute';
-			content.style.left = 0;
-			content.style.top = 0;
-			content.style.right = 0;
-			content.style.bottom = 0;
+			content.style.left = 8;
+			content.style.top = 8;
+			content.style.right = 8;
+			content.style.bottom = 8;
 		}
 
 		return  {
