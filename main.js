@@ -104,40 +104,52 @@ window.onload = function( ) {
 
 				let line_color = new Color('#00bcd4'),
 					axis_color = new Color(128,128,128),
-					width = canvas.width,
-					height = canvas.height,
-					left = 40;
+					title_back = new Color(0,0,0,0.5),
+					left = 40,
+					top = 20,
+					height = canvas.height - top - 20,
+					width = canvas.width - left - 20,
+					bottom = top + height;
 
 				canvas.beginPath( );
 
-				canvas.moveTo( left, 0 );
-				canvas.lineTo( left, height );
-				canvas.lineTo( width, height );
+				canvas.moveTo( left, top );
+				canvas.lineTo( left, bottom );
+				canvas.lineTo( left+width, bottom );
 
 				canvas.strokeStyle = axis_color;
 				canvas.stroke( );
 
+				canvas.fillStyle = Color.BLACK;
 				canvas.textAlign = 'right';
-				canvas.lineWidth = 0.5;
 				canvas.textBaseline = 'middle';
-				canvas.strokeText( height/2, left-4, height/2, left );
+				canvas.fillText( height/2, left-4, top+height/2, left );
 
+				canvas.textAlign = 'center';
+				canvas.fillText( 'My random chart', left + width/2, bottom+top/2 );
+
+				let mid = Math.round(top+height/2);
+
+				canvas.strokeStyle = axis_color.lighten(60);
 				canvas.beginPath( );
-				canvas.moveTo( left-4, height/2 );
-				canvas.lineTo( left+4, height/2 );
+				canvas.moveTo( left-4, mid );
+				canvas.lineTo( left+width, mid );
 				canvas.stroke( );
 
 				canvas.beginPath( );
-				let y = canvas.height / 2;
-				for( let x=left; x<width; x++ ) {
+				let y = height / 2;
+				for( let x=left; x<left+width; x++ ) {
+					
 					if( x==left ) {
-					 	canvas.moveTo( x, y );
+					 	canvas.moveTo( x, bottom-y );
 					}
 					else {
-						canvas.lineTo( x, y );
+						canvas.lineTo( x, bottom-y );
 					}
 
 					y = y + Math.random()*4 - 2;
+					if( y<0 ) y = 0;
+					else if( y>height ) y = height;
 				}
 
 				canvas.strokeStyle = line_color;

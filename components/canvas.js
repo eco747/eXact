@@ -111,8 +111,8 @@ class Color
     	else if( v>100 )	{ v = 100; }
         
         let {h,l,s} = this._rgbToHls( this.r, this.g, this.b );
-        l = l + v/100;
-        let {r,g,b} = this._hlsToRgb( h, l, s );
+        l += l * (v/100);
+        let {r,g,b} = this._hlsToRgb( h, Math.round(l), s );
 
     	return new Color( r, g, b, this.a );
 	}
