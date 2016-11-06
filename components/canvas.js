@@ -51,6 +51,12 @@ class Color
     		this.b = parseInt(s.substr(5,2),16);
     		this.a = 1;
     	}
+    	else if( s.length===9 ) {
+    		this.r = parseInt(s.substr(1,2),16);
+    		this.g = parseInt(s.substr(3,2),16);
+    		this.b = parseInt(s.substr(5,2),16);
+    		this.a = parseInt(s.substr(7,2),16) / 255;
+    	}
     	else if( (c=Color.re_rgb.exec(s))!==null ) {
     		this.r = c[1];
     		this.g = c[2];
@@ -81,7 +87,7 @@ class Color
 	    		this._cache = 'rgb('+this.r+','+this.g+','+this.b+')';
 	    	}
 	    	else {
-	    		this._cache = 'rgba('+this.r+','+this.g+','+this.b+','+this.a+')';	
+	    		this._cache = 'rgba('+this.r+','+this.g+','+this.b+','+roundTo(this.a,4)+')';	
 	    	}
 	    }
 

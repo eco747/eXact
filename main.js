@@ -152,7 +152,7 @@ window.onload = function( ) {
 					else if( y>height ) y = height;
 				}
 
-				canvas.strokeStyle = line_color;
+				canvas.strokeStyle = line_color.alpha(0.8);
 				canvas.lineWidth = 2;
 				canvas.stroke( );
 			}
