@@ -55,10 +55,16 @@ class Icon extends Component
 }
 
 /**
- * 
+ * TODO: add events sizestart, sizeend, refresh parent layout when done
  */
 
 class 	Sizer extends Component {
+
+	constructor( ...a ) {
+		super(...a);
+
+		this.addEvents(['sizestart','sizeend']);
+	}
 
 	render( ) {
 
@@ -100,6 +106,8 @@ class 	Sizer extends Component {
 			dom = React.findDOMNode( parent._ ),
 			rc = dom.getBoundingClientRect( ),
 			dx, dy;
+
+		this.fireEvent( 'sizestart' );
 			
 		function mouseMove( e ) {
 			if( side=='right' ) {
@@ -117,6 +125,8 @@ class 	Sizer extends Component {
 		function mouseUp( e ) {
 			window.removeEventListener( 'mousemove', mouseMove );
 			window.removeEventListener( 'mouseup', mouseUp );				
+
+			this.fireEvent( 'sizeend' );
 		}
 
 		window.addEventListener( 'mousemove', mouseMove );
