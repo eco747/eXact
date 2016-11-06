@@ -95,6 +95,7 @@ window.onload = function( ) {
 			edit.on('change', doFilter );
 
 
+			//	simple chart demo for canvas
 			function draw( canvas ) {
 
 				function onclick( e ) {
@@ -102,21 +103,34 @@ window.onload = function( ) {
 				}
 
 				let line_color = new Color('#00bcd4'),
-					axis_color = new Color(128,128,128);
+					axis_color = new Color(128,128,128),
+					width = canvas.width,
+					height = canvas.height,
+					left = 40;
 
 				canvas.beginPath( );
 
-				canvas.moveTo( 0, 0 );
-				canvas.lineTo( 0, canvas.height );
-				canvas.lineTo( canvas.width, canvas.height );
+				canvas.moveTo( left, 0 );
+				canvas.lineTo( left, height );
+				canvas.lineTo( width, height );
 
 				canvas.strokeStyle = axis_color;
 				canvas.stroke( );
 
+				canvas.textAlign = 'right';
+				canvas.lineWidth = 0.5;
+				canvas.textBaseline = 'middle';
+				canvas.strokeText( height/2, left-4, height/2, left );
+
+				canvas.beginPath( );
+				canvas.moveTo( left-4, height/2 );
+				canvas.lineTo( left+4, height/2 );
+				canvas.stroke( );
+
 				canvas.beginPath( );
 				let y = canvas.height / 2;
-				for( let x=0; x<canvas.width; x++ ) {
-					if( x==0 ) {
+				for( let x=left; x<width; x++ ) {
+					if( x==left ) {
 					 	canvas.moveTo( x, y );
 					}
 					else {
@@ -132,7 +146,7 @@ window.onload = function( ) {
 			}
 
 
-			let canvas = new Canvas({render:draw,type:'2d'});
+			let canvas = new Canvas({render:draw,type:'2d', flex:1});
 
 			let dlg = {
 				layout: 'vertical',
@@ -147,7 +161,11 @@ window.onload = function( ) {
 						layout: 'horizontal',
 						items: new CheckBox({label:'Auto Refresh'}),	// changed icon just to play
 					},
-					canvas
+					{
+						layout: 'vertical',
+						flex: 1,
+						items: canvas
+					}
 				]
 			};
 

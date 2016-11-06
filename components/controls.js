@@ -1,5 +1,43 @@
 
 /**
+ * 
+ */
+
+class 	Panel extends Component
+{
+	constructor( ...a ) {
+		super( ...a );
+
+		this._defStyle = {
+			width: this._config.width,
+			borderRight: '1px solid #000',
+			boxSizing: 'border-box',
+			padding: 8,
+			position: 'relative'
+		};
+	}
+
+	render( ) {
+
+		let content = this._config.content;
+		if( content ) {
+
+			content.style = content.style || {};
+
+			content.style.position = 'absolute';
+			content.style.left = 0;
+			content.style.top = 0;
+			content.style.right = 0;
+			content.style.bottom = 0;
+		}
+
+		return  {
+			items: content
+		};
+	}
+}
+
+/**
  * Standard button
  * config:
  * 	title

@@ -382,12 +382,29 @@ class 	StdCanvasPainter
 
 		if( this._config.render && this.dom ) {
 
-			this.context = this.context || this.dom.getContext('2d');
-			
-			this.context.width = this.dom.clientWidth;
-			this.context.height = this.dom.clientHeight;
+			let dom = this.dom;
 
-			this._config.render( this.context );
+			dom.width = 0;
+			dom.height = 0;
+
+			let	width = dom.scrollWidth,
+				height = dom.scrollHeight,
+				ctx = this.context || dom.getContext('2d');	
+
+			dom.width = width;
+			dom.height = height;
+
+			ctx.width = width - 1;
+			ctx.height = height - 1;
+
+			ctx.rect( 0, 0, width, height );
+			ctx.clip( );
+
+			ctx.save( );
+			ctx.scale(1, 1);
+			ctx.translate( 0.5, 0.5 );
+			this._config.render( ctx );
+			ctx.restore( );
 		}
 
 		return null;
@@ -435,6 +452,10 @@ class 	Canvas extends Component
 
 	afterMount( ) {
 		this.canvas._refresh( );
+	}
+
+	afterUpdate() {
+		asap( this.canvas._refresh, this.canvas );
 	}
 
 	render( ) {
