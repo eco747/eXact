@@ -367,7 +367,6 @@
 				 style.display = 'none';
 			}
 
-
 			if( cfg.style ) {
 				style = Object.assign( style, cfg.style );
 			}

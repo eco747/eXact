@@ -176,6 +176,9 @@ window.onload = function( ) {
 					{
 						layout: 'vertical',
 						flex: 1,
+						style: {
+							minHeight: 150,
+						},
 						items: canvas
 					}
 				]

@@ -12,7 +12,9 @@ class 	Panel extends Component
 			width: this._config.width,
 			borderRight: '1px solid #000',
 			boxSizing: 'border-box',
-			position: 'relative'
+			padding: 8,
+			overflow: 'auto',
+			display: 'flex',
 		};
 	}
 
@@ -20,14 +22,9 @@ class 	Panel extends Component
 
 		let content = this._config.content;
 		if( content ) {
-
+			content.flex = 1;
 			content.style = content.style || {};
-
-			content.style.position = 'absolute';
-			content.style.left = 8;
-			content.style.top = 8;
-			content.style.right = 8;
-			content.style.bottom = 8;
+			content.style.minHeight = 'min-content';
 		}
 
 		return  {
@@ -145,7 +142,9 @@ class 	TextField extends Component
 
 		return {
 			layout: vert ? 'vertical' : 'horizontal',
-			style: {alignItems: labelAlign=='top' ? 'left' : 'center'},
+			style: {
+				alignItems: labelAlign=='top' ? 'left' : 'center'
+			},
 			items: items
 		}
 	}
