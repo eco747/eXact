@@ -111,7 +111,7 @@ window.onload = function( ) {
 				canvas.lineTo( canvas.width, canvas.height );
 
 				canvas.strokeStyle = axis_color;
-				canvas.strokePath( );
+				canvas.stroke( );
 
 				canvas.beginPath( );
 				let y = canvas.height / 2;
@@ -128,11 +128,11 @@ window.onload = function( ) {
 
 				canvas.strokeStyle = line_color;
 				canvas.lineWidth = 2;
-				canvas.strokePath( onclick );
+				canvas.stroke( );
 			}
 
 
-			let canvas = new SvgCanvas({render:draw});
+			let canvas = new Canvas({render:draw,type:'2d'});
 
 			let dlg = {
 				layout: 'vertical',
