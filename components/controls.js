@@ -12,8 +12,12 @@ class Icon extends Component
 
 		this.setDataModel( {
 			glyph: this._config.glyph,		
-			size: this._config.size
+			size: this._config.size,
 		} );
+	}
+
+	_setIcon( glyph ) {
+		this._data.glyph = glyph;
 	}
 
 	render( ) {
@@ -33,14 +37,19 @@ class Icon extends Component
 			cls = glyph;
 		}
 
+		let style = {textAlign: 'center'};
+				
+		if( size ) {
+			style.width = size;
+			style.height = size;
+			style.fontSize = size;
+		};
+
 		return {
 			tag: 'i',
 			cls: cls,
-			style: {
-				width: size,
-				height: size,
-				fontSize: size,
-			}
+			style: style,
+			onclick: this._config.onclick
 		}
 	}
 }
@@ -303,24 +312,44 @@ class 	CheckBox extends Component
 
 class AppBar extends Component
 {
-	constructor( {title,icon}) {
-		super( );
+	constructor( ...a ) {
+		super( ...a );
 
 		this.setDataModel( {
-			title: title || ' ',		// title shown
+			title: this._config.title || ' ',		// title shown
+			menu: this._config.menu || null,
+			icon: this._config.icon || null
 		} );
 
-		this.icon	= new Icon({glyph:icon});
+		this.icon	= new Icon();
+		this.menu_icon 	= new Icon({
+			glyph:'fa@bars',
+			style: {cursor:'pointer'},
+			onclick:this.menuClick.bind(this)
+		});
+	}
+
+	menuClick( ) {
+		if( this._data.menu ) {
+			this._data.menu.show( {ref:this.menu_icon,align:'brtr'} );
+		}
 	}
 
 	render( ) {
+
+		if( this._data.icon ) {
+			this.icon._setIcon( this._data.icon );
+		}
+
 		return {
+			layout: 'horizontal',
 			items: [
 				this.icon,
 				{
 					cls: 'x-text',
 					content: this._data.title
-				}
+				},
+				this._data.menu ? this.menu_icon : null
 			]
 		};
 	}

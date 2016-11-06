@@ -35,7 +35,80 @@
 	 * 
 	 */
 	
-	class Window extends Component {
+	class WindowBase extends Component
+	{
+		constructor( ...a ) {
+			super( ...a );
+
+			this.clickDismiss = this._config.clickDismiss;
+			this._checkClick = this._checkClick.bind(this);
+		}		
+
+		show( showInfo ) {
+			if( !this.init ) {
+				this._show_info = showInfo,
+				this._createRootNode( );			
+				this.init = true;
+			}
+		}
+
+		close( ) {
+			if( this.root && this.init ) {
+
+				if( this.clickDismiss ) {
+					window.removeEventListener( 'click', this._checkClick );
+				}
+
+				React.unmountComponentAtNode(this.root);
+			    document.body.removeChild(this.root);
+			    this.init = false;
+			}
+		}
+		
+		// small hack:
+		// for modless windows, as react must render elements inside a root element (and remove other elements)
+		// we have to create a temp element by hand
+		// for modals: the created element serves as modal mask, we keep it.
+		
+		_createRootNode( ) {
+			// insert a div into which we will render
+			this.root = document.createElement( 'div' );
+
+			if( this.clickDismiss ) {
+				let me = this;
+				asap( function() { // because we get the last click
+					window.addEventListener( 'click', me._checkClick );
+				});
+			}
+
+			if( this.modal ) {
+				// put it inside body 
+				this.root.className = 'x-modal-mask x-center';
+			}
+		
+			document.body.appendChild( this.root );
+
+			React.unstable_renderSubtreeIntoContainer( this._, React.createElement(this._), this.root );
+		}
+
+		_checkClick( e ) {
+			let dom = React.findDOMNode(this._);
+
+			if( !isDescendantElement(e.target,dom) ) {
+				this.onClickAway( );
+			}
+		}
+
+		onClickAway( ) {
+			this.close( );
+		}
+	}
+
+	/**
+	 * 
+	 */
+	
+	class Window extends WindowBase {
 
 		constructor( ...a ) {
 			super( ...a );
@@ -57,55 +130,8 @@
 			}
 		}
 
-		show( ) {
-			if( !this.init ) {
-				this._createRootNode( );			
-				this.init = true;
-			}
-		}
-
-		close( ) {
-			if( this.root && this.init ) {
-				React.unmountComponentAtNode(this.root);
-			    document.body.removeChild(this.root);
-			    this.init = false;
-			}
-		}
-		
-		// small hack:
-		// for modless windows, as react must render elements inside a root element (and remove other elements)
-		// we have to create a temp element by hand
-		// for modals: the created element serves as modal mask, we keep it.
-		
-		_createRootNode( ) {
-			// insert a div into which we will render
-			this.root = document.createElement( 'div' );
-
-			if( this._config.clickDismiss ) {
-				this.root.addEventListener( 'click', (e) => { 
-					if( e.target===this.root ) {
-						this.close(); 
-					}
-				});
-			}
-
-			if( this.modal ) {
-				// put it inside body 
-				this.root.className = 'x-modal-mask x-center';
-			}
-			else {
-				this.root.className = 'x-modless-portal';
-			}
-
-			document.body.appendChild( this.root );
-
-			React.unstable_renderSubtreeIntoContainer( this._, React.createElement(this._), this.root );
-		}
-
 		render( ) {
 			const {width,height,frame,sizeable} = this._data;
-
-
 	    	return {
 	    		cls: 'x-box x-nosel',
 	    		style: {
@@ -124,6 +150,199 @@
 	    }
 	}
 
+
+	class MenuSeparator extends Component
+	{
+		render( ) {
+			return {
+			}
+		}
+	}
+
+	/**
+	 * 
+	 */
+
+	class MenuItem extends Component
+	{
+		constructor( ...a ) {
+			super( ...a );
+
+			this.setDataModel({
+				title: this._config.title,
+				icon: this._config.icon,
+				menu: this._config.menu,
+			});
+
+			this.addEvents(['click']);
+			this.icon = new Icon({style:{width:16}});
+			this.popup = new Icon({glyph:'fa@angle-right',style:{width:16}});
+		}
+
+		render( ) {
+
+			let isPopup = this._data.menu ? true : false;
+
+			this.icon._setIcon( this._data.icon );
+
+			return {
+				layout: 'horizontal',
+				onclick: this.onClick.bind(this),
+				style: {
+					alignItems: 'center'
+				},
+				items: [
+					this.icon,
+					{
+						cls: 'x-text',
+						content: this._data.title,
+						flex: 1,
+					},
+					isPopup ? this.popup : {width:16},
+				]
+			}
+		}
+
+		onClick( ) {
+			if( this._data.menu ) {
+				this._showSubMenu( );
+			}
+			else {
+				this.fireEvent( 'click' );
+
+				// simulate a clic to close the main menu
+				let me = new MouseEvent( 'click' );
+				window.dispatchEvent( me );
+			}
+		}
+
+		_showSubMenu( ) {
+			this._data.menu.show( {ref:this,align:'trtl'} );
+		}
+	}
+
+	/**
+	 * 
+	 */
+
+	class Menu extends WindowBase {
+
+		constructor( ...a ) {
+			super( ...a );
+
+			this.setDataModel({
+				items: this._config.items
+			});
+
+			this.clickDismiss = true;
+			//setTimeout( this.close.bind(this), 30000 );
+		}
+
+		afterMount( ) {
+			if( this._show_info ) {
+				this._positionMenu( this._show_info );
+			}
+			else {
+				let dom = React.findDOMNode(this._);
+				dom.style.opacity = 1.0;
+			}
+		}
+
+		_calcPosition( tar_dom, ref_dom, align, lvl=0 ) {
+
+			let rc_ref = ref_dom.getBoundingClientRect( ),
+				rc_tar = tar_dom.getBoundingClientRect( );
+
+
+			let href, vref, x, y;
+				
+			if( align[0]=='t' ) {vref = rc_ref.top;}
+			else 				{vref = rc_ref.top+rc_ref.height;}
+
+			if( align[1]=='r' ) {href = rc_ref.left+rc_ref.width;}
+			else 				{href = rc_ref.left;}
+
+			if( align[2]=='t' ) {y = vref;}
+			else 				{y = vref-rc_tar.height;}
+
+			if( align[3]=='r' ) {x = href-rc_tar.width;}
+			else 				{x = href;}
+
+			let sw = document.body.clientWidth,
+				sh = document.body.clientHeight,
+				tmp;
+							
+			if( (x+rc_tar.width)>sw )  {
+				
+				if( align[1]=='r' && align[3]=='l' && lvl==0 ) {
+					align = align[0]+'l'+align[2]+'r';
+					tmp = this._calcPosition( tar_dom, ref_dom, align, 1 );
+					x = tmp.x + 4;
+				}
+				else {
+					x = sw-rc_tar.width; 
+				}
+			}
+
+			if( x<0 ) {
+
+				if( align[1]=='l' && align[3]=='r' && lvl==0 ) {
+					align = align[0]+'r'+align[2]+'l';
+					tmp = this._calcPosition( tar_dom, ref_dom, align, 1 );
+					x = tmp.x - 4;
+				}
+				else {
+					x = 0; 
+				}
+			}
+
+			if( (y+rc_tar.height)>sh ) { y = sh-rc_tar.height; }
+			if( y<0 ) 				  { y = 0; }
+
+			return {x,y};
+		}
+
+		_positionMenu( info ) {
+
+			let tar_dom = React.findDOMNode(this._),
+				ref_dom = React.findDOMNode(info.ref._);
+				
+			let {x,y} = this._calcPosition( tar_dom, ref_dom, info.align );
+
+			tar_dom.style.left = x;
+			tar_dom.style.top = y;
+			tar_dom.style.opacity = 1.0;
+		}
+
+		render( ) {
+
+			return {
+				layout: 'vertical',
+				style: {
+					position: 'absolute',
+					minWidth: 'min-content',
+					opacity: 0,
+					zIndex: 100,
+				},
+				items: this._data.items
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+	/**
+	 * Alert, Warning, Info dialogs
+	 */
 
 	function alert( cfg ) {
 		cfg.cls = 'x-alert';
@@ -244,6 +463,9 @@
 		t.show( );
 	}
 
+	$$.Menu = Menu;
+	$$.MenuItem = MenuItem;
+	$$.MenuSeparator = MenuSeparator;
 	$$.Window = Window;
 	$$.Exact.alert = alert;
 	$$.Exact.warning = warning;

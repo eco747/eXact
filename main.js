@@ -11,13 +11,6 @@ window.onload = function( ) {
 
 			super( );
 			
-			this.header 	= new AppBar({
-				title:'eXact', 
-				icon:'fa@thermometer-empty'
-			});
-
-			let botbar = this.createBotBar( );
-			
 			let model = new DataModel( {
 				fields: ['first_name', 'last_name', 'address', {name:'num',type:'float'}]
 			});
@@ -36,6 +29,7 @@ window.onload = function( ) {
 			this.grid = this.createGrid( store );
 			this.panel = this.createPanel( store );
 			this.botbar = this.createBotBar( );
+			this.appbar = this.createAppBar( );
 		}
 
 		render( ) {
@@ -43,7 +37,7 @@ window.onload = function( ) {
 				cls: 'x-nosel',
 				layout: 'vertical',
 				items: [
-					this.header,
+					this.appbar,
 					{
 						layout: 'horizontal',
 						flex: 1,
@@ -55,6 +49,30 @@ window.onload = function( ) {
 					this.botbar
 				]
 			};
+		}
+
+		createAppBar( ) {
+
+			let settings = new Menu( {
+				items: [
+					new MenuItem({title:'Theme',icon:'fa@paint-brush'}),
+				]
+			});
+
+			let menu = new Menu( {
+				items: [
+					new MenuItem({title:'About',icon:'fa@question'}),
+					new MenuItem({title:'Settings',icon:'fa@cogs',menu:settings}),
+					new MenuSeparator( ),
+					new MenuItem({title:'Report an issue',icon:'fa@bug'}),
+				]
+			});
+
+			return new AppBar({
+				title:'eXact', 
+				icon:'fa@thermometer-empty',
+				menu: menu
+			});
 		}
 
 		createBotBar( ) {
