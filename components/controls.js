@@ -55,6 +55,76 @@ class Icon extends Component
 }
 
 /**
+ * 
+ */
+
+class 	Sizer extends Component {
+
+	render( ) {
+
+		let style;
+
+		if( this._config.side==='right' ) {
+			style = {
+				right: 0,
+				top: 0,
+				bottom: 0,
+				width: 4,
+				position: 'absolute',
+				cursor: 'ew-resize',
+			}
+		}
+		else if( this._config.side==='bottom' ) {
+			style = {
+				left: 0,
+				right: 0,
+				bottom: 0,
+				height: 4,
+				position: 'absolute',
+				cursor: 'ns-resize',
+			}
+		}
+		
+		return {
+			cls: this._config.side,
+			style: style,
+			onmousedown: this._resize.bind(this)
+		}
+	}
+
+	_resize( evt ) {
+
+		let me = this,
+			side = me._config.side,
+			parent = this._config.target,
+			dom = React.findDOMNode( parent._ ),
+			rc = dom.getBoundingClientRect( ),
+			dx, dy;
+			
+		function mouseMove( e ) {
+			if( side=='right' ) {
+				dx = evt.x - rc.right;
+				parent.setWidth( e.x - dx - rc.left );
+			}
+			else if( side=='bottom' ) {
+				dy = evt.y - rc.bottom;
+				parent.setHeight( e.y - dy - rc.top );	
+			}
+
+			e.preventDefault( );
+		}
+
+		function mouseUp( e ) {
+			window.removeEventListener( 'mousemove', mouseMove );
+			window.removeEventListener( 'mouseup', mouseUp );				
+		}
+
+		window.addEventListener( 'mousemove', mouseMove );
+		window.addEventListener( 'mouseup', mouseUp );
+	}
+}
+
+/**
  * 	Panel class
  */
 
@@ -63,17 +133,22 @@ class 	Panel extends Component
 	constructor( ...a ) {
 		super( ...a );
 
-		this._defStyle = {
+		this.setDataModel( {
 			width: this._config.width,
+		})
+	}
+
+	render( ) {
+
+		let style = {
+			width: this._data.width,
 			borderRight: '1px solid #000',
 			boxSizing: 'border-box',
 			padding: 8,
 			overflow: 'auto',
 			display: 'flex',
+			position: 'relative',
 		};
-	}
-
-	render( ) {
 
 		let content = this._config.content;
 		if( content ) {
@@ -82,8 +157,14 @@ class 	Panel extends Component
 			content.style.minHeight = 'min-content';
 		}
 
+		let items = [content];
+		if( 1 ) {
+			items.push( new Sizer({side:'right',target:this}) )
+		}
+
 		return  {
-			items: content
+			style: style,
+			items: items
 		};
 	}
 }

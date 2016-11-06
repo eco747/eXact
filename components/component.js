@@ -361,6 +361,7 @@
 			// next specific
 			if( cfg.flex ) {
 				style.flexGrow = cfg.flex;
+				style.flexBasis = 1;
 			}
 
 			if( cfg.hidden ) {
