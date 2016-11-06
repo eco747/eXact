@@ -160,6 +160,8 @@ window.onload = function( ) {
 
 			let canvas = new Canvas({render:draw,type:'2d', flex:1});
 
+			setInterval( function() {canvas._refresh()}, 1000 );
+
 			let dlg = {
 				layout: 'vertical',
 				items: [
@@ -178,6 +180,7 @@ window.onload = function( ) {
 						flex: 1,
 						style: {
 							minHeight: 150,
+							maxHeight: 300,
 						},
 						items: canvas
 					}

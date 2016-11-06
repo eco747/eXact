@@ -1,6 +1,52 @@
+/**
+ * 	Icon class
+ * 	can be an image (<img>) or a glyph (font) or a css glyph (fontawesome)
+ */
+
+class Icon extends Component
+{
+	constructor( ...a ) {
+		super( ...a );
+
+		this.re_glyph = /(\w+)\@([\w_-]+)/;
+
+		this.setDataModel( {
+			glyph: this._config.glyph,		
+			size: this._config.size
+		} );
+	}
+
+	render( ) {
+	
+		let { glyph, size } = this._data,	
+			cls;
+
+		if( !glyph ) {
+			return null;
+		}
+
+		if( glyph.match(this.re_glyph) ) {
+			let x = this.re_glyph.exec( glyph );
+			cls = x[1] + ' fa-' + x[2];
+		}
+		else {
+			cls = glyph;
+		}
+
+		return {
+			tag: 'i',
+			cls: cls,
+			style: {
+				width: size,
+				height: size,
+				fontSize: size,
+			}
+		}
+	}
+}
 
 /**
- * 
+ * 	Panel class
  */
 
 class 	Panel extends Component
@@ -250,3 +296,100 @@ class 	CheckBox extends Component
 		this.setValue( checked );
 	}
 }
+
+/**
+ *
+ */
+
+class AppBar extends Component
+{
+	constructor( {title,icon}) {
+		super( );
+
+		this.setDataModel( {
+			title: title || ' ',		// title shown
+		} );
+
+		this.icon	= new Icon({glyph:icon});
+	}
+
+	render( ) {
+		return {
+			items: [
+				this.icon,
+				{
+					cls: 'x-text',
+					content: this._data.title
+				}
+			]
+		};
+	}
+}
+
+
+/**
+ * 
+ */
+
+class BottomNavigationItem extends Component
+{
+	constructor( {title,icon,onclick} ) {
+		super( );
+
+		this.icon = new Icon( {glyph:icon} );
+		this.setDataModel({
+			title: title || ' ',
+			hover: false
+		});
+
+		this.events = {
+			onmouseenter: this.onMouseEnter,
+			onmouseleave: this.onMouseLeave,
+			onclick: onclick
+		}
+	}
+
+	render( ) {
+		return {
+			cls: this._data.hover ? 'x-hover' : '',
+			items: [
+				this.icon,
+				{
+					div: 'span',
+					cls: ' x-text',
+					content: this._data.title
+				}
+			]
+		}
+	}
+
+	onMouseEnter( e ) {
+		this.setHover( true );
+	}
+
+	onMouseLeave( e ) {
+		this.setHover( false );
+	}
+}
+
+/**
+ *
+ */
+
+class BottomNavigation extends Component
+{
+	constructor({buttons} ) {
+		super( );
+
+		this.setDataModel({
+			buttons: buttons	
+		});
+	}
+
+	render( ) {
+		return {
+			items: this._data.buttons
+		}
+	}
+}
+

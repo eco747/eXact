@@ -246,7 +246,7 @@ class 	SvgCanvasPainter extends Component
 				this._addPath( a );
 			}
 			else if( isNumber(a) ) {
-				this.path += Math.round(a*1000) / 1000 + ' ';
+				this.path += roundTo(a,3) + ' ';
 			}
 			else {
 				this.path += a + ' ';
@@ -374,7 +374,8 @@ SvgCanvasPainter.KAPPA = 4.0 * ((Math.sqrt(2) - 1.0) / 3.0);
 
 /**
  *	fake component to be used by Canvas
- *	
+ *
+ * TODO: optimize repainting with a container & do the size computation on the container
  */
 
 class 	StdCanvasPainter
