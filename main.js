@@ -94,6 +94,46 @@ window.onload = function( ) {
 			let edit = new TextField({label:'Filter on num >=',labelAlign:'top',value:'',textHint:'Enter a value'});
 			edit.on('change', doFilter );
 
+
+			function draw( canvas ) {
+
+				function onclick( e ) {
+					debugger;
+				}
+
+				let line_color = new Color('#00bcd4'),
+					axis_color = new Color(128,128,128);
+
+				canvas.beginPath( );
+
+				canvas.moveTo( 0, 0 );
+				canvas.lineTo( 0, canvas.height );
+				canvas.lineTo( canvas.width, canvas.height );
+
+				canvas.strokeStyle = axis_color;
+				canvas.strokePath( );
+
+				canvas.beginPath( );
+				let y = canvas.height / 2;
+				for( let x=0; x<canvas.width; x++ ) {
+					if( x==0 ) {
+					 	canvas.moveTo( x, y );
+					}
+					else {
+						canvas.lineTo( x, y );
+					}
+
+					y = y + Math.random()*4 - 2;
+				}
+
+				canvas.strokeStyle = line_color;
+				canvas.lineWidth = 2;
+				canvas.strokePath( onclick );
+			}
+
+
+			let canvas = new SvgCanvas({render:draw});
+
 			let dlg = {
 				layout: 'vertical',
 				items: [
@@ -106,7 +146,8 @@ window.onload = function( ) {
 					{
 						layout: 'horizontal',
 						items: new CheckBox({label:'Auto Refresh'}),	// changed icon just to play
-					}
+					},
+					canvas
 				]
 			};
 
@@ -146,8 +187,8 @@ window.onload = function( ) {
 					{ title: 'First name', index: 'first_name', width: 400 },
 					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
 					{ title: 'Address',    sortable: true, index: 'address', flex: 1 },
+					{ title: 'Number', 	   sortable: true, index: 'num', flex: 1 },
 					{ title: 'Renderer',   renderer: renderCell, width: 80 },
-					{ title: 'Number', 	   sortable: true, index: 'num', width: 150 },
 				]
 			});
 		}

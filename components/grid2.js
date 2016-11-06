@@ -3,6 +3,8 @@
 	/**
 	 * Row class
 	 * responsible to setup cells in a row
+	 *
+	 * BUG: when h-sizing & hscrollbar disapear, we loose the content
 	 */
 
 	class 	Row extends Component
