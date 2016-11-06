@@ -55,7 +55,7 @@ class Icon extends Component
 }
 
 /**
- * TODO: add events sizestart, sizeend, refresh parent layout when done
+ * TODO: refresh parent layout when done
  */
 
 class 	Sizer extends Component {
