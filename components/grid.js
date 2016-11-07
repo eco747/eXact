@@ -437,7 +437,7 @@
 			
 			if( this._totalWidth<width && this._hasFlex ) {
 				if( this._flexWidth!=width ) {
-					this._header.set( 'totalWidth', '100%' );
+					this._header.set( 'totalWidth', width );
 					this._content.set( 'totalWidth', '100%' );
 					this._flexWidth = width;
 				}
