@@ -215,14 +215,12 @@ body {
 		padding: 4px 0 1px 0;
 		border-bottom: 1px solid transparent;
 		margin: 4px 0;
-
-		&.x-required:before {
-			content:'*'
-		}
 	}
 
 	.x-label.x-vert {
 		margin-bottom: 0;
+		font-size: 80%;
+		color: #999999;
 	}
 
 	input {
@@ -233,18 +231,38 @@ body {
       	background-color: transparent;
       	margin: 4px 0;
       	padding: 4px 0 1px 0;
-	}
-
-	input:focus {
-		border-bottom: 1px solid #00bcd4;
-	}
-
-	input.x-error {
-		border-bottom: 1px solid #bf360c;	
+      	font-size: @def-font-size;
 	}
 
 	input.x-vert {
 		margin-top: 0;
+	}
+
+	&.required {
+		.x-label {
+			font-weight: bold;
+		}
+	}
+
+	&.error {
+		.x-label {
+			color: #bf360c;
+		}
+
+		input {
+			border-bottom: 1px solid #bf360c;	
+		}
+	}
+
+	// focus win on error
+	&.focus {
+		.x-label {
+			color: #0097a7;
+		}
+
+		input {
+			border-bottom: 1px solid #00bcd4;
+		}
 	}
 }
 
@@ -309,6 +327,7 @@ body {
 	//box-shadow: 4px 4px 16px rgba(0,0,0,0.5);
 	box-shadow: rgba(0, 0, 0, 0.117647) 0px 1px 6px, rgba(0, 0, 0, 0.117647) 0px 1px 4px;
 	z-index: 100;
+	transition: all 700ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
 
 	.x-menu-separator {
 		box-sizing: border-box;
@@ -350,3 +369,26 @@ body {
 		}
 	}
 }
+
+.z-depth-1 {
+	box-shadow: rgba(0, 0, 0, 0.117647) 0px 1px 6px, rgba(0, 0, 0, 0.117647) 0px 1px 4px;
+}
+
+.z-depth-2 {
+	box-shadow: rgba(0, 0, 0, 0.156863) 0px 3px 10px, rgba(0, 0, 0, 0.227451) 0px 3px 10px;
+}
+
+.z-depth-3 {
+	box-shadow: rgba(0, 0, 0, 0.188235) 0px 10px 30px, rgba(0, 0, 0, 0.227451) 0px 6px 10px;
+}
+
+.z-depth-4 {
+	box-shadow: rgba(0, 0, 0, 0.247059) 0px 14px 45px, rgba(0, 0, 0, 0.219608) 0px 10px 18px;
+}
+
+.z-depth-5 {
+	box-shadow: rgba(0, 0, 0, 0.298039) 0px 19px 60px, rgba(0, 0, 0, 0.219608) 0px 15px 20px;
+}
+
+
+

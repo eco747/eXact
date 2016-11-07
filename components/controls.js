@@ -335,7 +335,7 @@ class 	TextField extends Component
 		if( label || labelWidth ) {
 
 			items.push( {
-				cls: 'x-label' + (required ? ' x-required' : '') + (this._error ? ' x-error' : '')  + (vert ? ' x-vert' : ''),
+				cls: 'x-label' + (vert ? ' x-vert' : ''),
 				style: {textAlign: labelAlign},
 				width: labelWidth,
 				flex: labelWidth || 1,
@@ -346,7 +346,7 @@ class 	TextField extends Component
 		// prepare input ------------------
 		items.push({
 			tag: 'input',
-			cls: (this._error ? 'x-error' : '' ) + (vert ? ' x-vert' : ''),
+			cls: (vert ? ' x-vert' : ''),
 			flex: 1,
 			style: {
 				type: 'text',
@@ -359,6 +359,7 @@ class 	TextField extends Component
 
 		return {
 			layout: vert ? 'vertical' : 'horizontal',
+			cls: (this._focus ? 'focus' : '') + (this._error ? ' error' : '' ) + (required ? ' required' : ''),
 			style: {
 				alignItems: labelAlign=='top' ? 'left' : 'center'
 			},
@@ -372,10 +373,13 @@ class 	TextField extends Component
 
 	onFocus( e ) {
 		this.fireEvent( 'focus', e );
+		this._focus = true;
+		this._refresh( );
 	}
 
 	onBlur( e ) {
-
+		this._focus = false;
+		
 		let value = e.target.value;
 		this.fireEvent( 'blur', value, e );
 
@@ -383,10 +387,11 @@ class 	TextField extends Component
 			let err = value.length==0;
 
 			if( err!=this.error ) {
-				this.error = err;
-				this._refresh( );
+				this._error = err;
 			}
 		}
+
+		this._refresh( );
 	}
 }
 

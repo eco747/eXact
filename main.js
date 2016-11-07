@@ -109,7 +109,7 @@ window.onload = function( ) {
 				});
 			}
 
-			let edit = new TextField({label:'Filter on num >=',labelAlign:'top',value:'',textHint:'Enter a value'});
+			let edit = new TextField({label:'Filter on num >=',labelAlign:'top',value:'',textHint:'Enter a value',required:'true'});
 			edit.on('change', doFilter );
 
 
