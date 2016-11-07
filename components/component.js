@@ -169,6 +169,12 @@
 
 	class  Component extends Observable
 	{
+		/**
+		 * @constructor
+		 * @param  {Object} cfg - configuration		
+		 * @param  {Object} defaults - default values for configuration
+		 */
+		
 		constructor( cfg, defaults ) {
 			super( );
 
@@ -198,8 +204,9 @@
 		}
 
 		/**
-		 * create automatically a set function for the givan variable name
-		 * set 
+		 * create automatically a set function for the given variable name
+		 * ie. createAccessor('title') will define a method setTitle, when called if title change, automatically call _refresh
+		 * you can use multiple value createAccessor('title','icon')
 		 */
 		
 		createAccessor( ...vars ) {
@@ -221,6 +228,9 @@
 		/**
 		 * automatically bind methods matching 'match' to this
 		 * match is a regular expression. by default bind all methods starting by 'on'
+		 * this mean that after this method have been called, all method starting with 'on' are binded to this
+		 * onScroll or onClick, the is a trick to avoid spend our time to do mycallback = this.onMyMethod.bind(this)
+		 * binded methods are 'marqued', this way we do not bind binded methods.
 		 */
 		
 		bindAll( match ) {
@@ -244,7 +254,8 @@
 		}
 
 		/**
-		 * append automatically events to the dom and bind methods to this
+		 * append automatically events to the dom and bind methods to this if needed (see bindAll)
+		 * ex: bind( { onclick: this.onClick, onkeypress: this.onKey } );
 		 */
 		
 		bindEvents( events ) {
@@ -262,7 +273,7 @@
 
 		/**
 		 * apply element on this
-		 * cannot redefine an already defined element
+		 * cannot redefine an already defined element (for now - debug purpose)
 		 */
 		
 		_apply( cfg ) {
@@ -282,6 +293,7 @@
 		 *
 		 * 	layout: 
 		 * 		vertical, horizontal
+		 * 		
 		 *	layoutDir:
 		 *		center, start, end, space-around, space-between
 		 * 
@@ -383,8 +395,9 @@
 		}
 
 		/**
-		 * 
+		 * parse an object looking at it's style & shortcuts
 		 */
+		
 		_parseStyle( cfg ) {
 
 			let style = {};

@@ -570,6 +570,7 @@
 			
 			this._hasFlex = false;
 			this._totalWidth = this._calcWidth( );
+			this._totalHeight = 0;
 			this._flexWidth	= 0;
 						
 			return {

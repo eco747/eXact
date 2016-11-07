@@ -178,7 +178,7 @@ window.onload = function( ) {
 
 			let canvas = new Canvas({renderer:draw,type:'2d', flex:1});
 
-			setInterval( function() {canvas._refresh()}, 500 );
+			setInterval( function() {canvas._refresh()}, 100 );
 
 			let dlg = {
 				layout: 'vertical',
