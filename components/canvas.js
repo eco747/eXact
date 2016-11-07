@@ -378,7 +378,7 @@ SvgCanvasPainter.KAPPA = 4.0 * ((Math.sqrt(2) - 1.0) / 3.0);
  * TODO: optimize repainting with a container & do the size computation on the container
  */
 
-class 	StdCanvasPainter
+class 	StdCanvasPainter extends Component
 {
 	/**
 	 * @constructor
@@ -386,46 +386,58 @@ class 	StdCanvasPainter
 	 */
 	
 	constructor( cfg ) {
-		apply( this, cfg );
+		super( cfg );
 
 		this._context = null;
+		this._dom = null;
+		this._width = 0;
+		this._height = 0;
 	}
+	
+	_paint( ) {
+		if( this.renderer && this._dom ) {
 
-	_refresh( ) {
+			let dom = this._getDOM( ),
+				//rc = dom.getBoundingClientRect( ),
+				width = dom.clientWidth,//rc.width,
+				height = dom.clientHeight; //rc.height;
 
-		if( this.renderer && this.dom ) {
+			let	ctx = this.context || this._dom.getContext('2d');	
 
-			let dom = this.dom;
-
-			dom.width = 0;
-			dom.height = 0;
-
-			let	width = dom.scrollWidth,
-				height = dom.scrollHeight,
-				ctx = this.context || dom.getContext('2d');	
-
-			dom.width = width;
-			dom.height = height;
+			if( this._width!=width || this._height!=height ) {
+				this._dom.width = this._dom.style.width = width;
+				this._dom.height = this._dom.style.height = height;
+				this._width = width;
+				this._height = height;
+			}
 
 			ctx.width = width - 1;
 			ctx.height = height - 1;
 
-			ctx.rect( 0, 0, width, height );
-			ctx.clip( );
-
 			ctx.save( );
-			ctx.scale(1, 1);
+			ctx.clearRect( 0, 0, width, height );
 			ctx.translate( 0.5, 0.5 );
 			this.renderer( ctx );
 			ctx.restore( );
 		}
+	}
 
-		return null;
+	_acquireRef( dom ) {
+		this._dom = dom;
+		this._paint( );
+	}
+
+	render( ) {
+		return {
+			style: { boxSizing: 'border-box', overflow: 'hidden', position: 'relative' },
+			items: {
+				tag: 'canvas',
+				style: {position:'absolute'},
+				ref: this._acquireRef.bind(this)
+			}
+		}
 	}
 }
-
-
-
 
 
 
@@ -455,7 +467,7 @@ class 	Canvas extends Component
 			this.canvas = new SvgCanvasPainter( cfg );
 		}
 		else {
-			this.canvas = new StdCanvasPainter( cfg );
+			return new StdCanvasPainter( cfg );
 		}
 	}
 
@@ -472,12 +484,13 @@ class 	Canvas extends Component
 	}
 
 	render( ) {
-		
-		return {
-			tag: this.type=='svg' ? 'svg' : 'canvas',
-			ref: this.acquireRef.bind(this),
-			flex: 1,
-			items: this.canvas
+		if( this.type=='svg' ) {
+			return {
+				tag: 'svg',
+				ref: this.acquireRef.bind(this),
+				flex: 1,
+				items: this.canvas
+			}
 		}
 	}
 }

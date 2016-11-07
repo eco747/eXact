@@ -135,7 +135,7 @@ window.onload = function( ) {
 				canvas.lineTo( left, bottom );
 				canvas.lineTo( left+width, bottom );
 
-				canvas.strokeStyle = axis_color;
+				canvas.strokeStyle = axis_color.toString();
 				canvas.stroke( );
 
 				canvas.fillStyle = Color.BLACK;
@@ -148,7 +148,7 @@ window.onload = function( ) {
 
 				let mid = Math.round(top+height/2);
 
-				canvas.strokeStyle = axis_color.lighten(60);
+				canvas.strokeStyle = axis_color.lighten(60).toString();
 				canvas.beginPath( );
 				canvas.moveTo( left-4, mid );
 				canvas.lineTo( left+width, mid );
@@ -170,7 +170,7 @@ window.onload = function( ) {
 					else if( y>height ) y = height;
 				}
 
-				canvas.strokeStyle = line_color.alpha(0.8);
+				canvas.strokeStyle = line_color.alpha(0.8).toString();
 				canvas.lineWidth = 2;
 				canvas.stroke( );
 			}
