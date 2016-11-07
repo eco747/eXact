@@ -208,8 +208,8 @@ Color.re_rgba = /rgba\((\d+),(\d+),(\d+),(\d+)\)/;
 
 class 	SvgCanvasPainter extends Component
 {
-	constructor( ...a ) {
-		super( ...a );
+	constructor( cfg ) {
+		super( cfg );
 
 		this.ops = [];
 		this.path = [];
@@ -380,14 +380,20 @@ SvgCanvasPainter.KAPPA = 4.0 * ((Math.sqrt(2) - 1.0) / 3.0);
 
 class 	StdCanvasPainter
 {
+	/**
+	 * @constructor
+	 * @param  {Function} cfg.renderer - rendering function
+	 */
+	
 	constructor( cfg ) {
-		this._config = cfg;
-		this.context = null;
+		apply( this, cfg );
+
+		this._context = null;
 	}
 
 	_refresh( ) {
 
-		if( this._config.render && this.dom ) {
+		if( this.renderer && this.dom ) {
 
 			let dom = this.dom;
 
@@ -410,7 +416,7 @@ class 	StdCanvasPainter
 			ctx.save( );
 			ctx.scale(1, 1);
 			ctx.translate( 0.5, 0.5 );
-			this._config.render( ctx );
+			this.renderer( ctx );
 			ctx.restore( );
 		}
 
@@ -445,7 +451,7 @@ class 	Canvas extends Component
 	constructor( cfg ) {
 		super( cfg );
 
-		if( this._config.type=='svg' ) {
+		if( this.type=='svg' ) {
 			this.canvas = new SvgCanvasPainter( cfg );
 		}
 		else {
@@ -468,7 +474,7 @@ class 	Canvas extends Component
 	render( ) {
 		
 		return {
-			tag: this._config.type=='svg' ? 'svg' : 'canvas',
+			tag: this.type=='svg' ? 'svg' : 'canvas',
 			ref: this.acquireRef.bind(this),
 			flex: 1,
 			items: this.canvas

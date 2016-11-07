@@ -40,6 +40,10 @@
 		}
 
 		add( o ) {
+			if( !o ) {
+				debugger;
+			}
+
 			this.observers.push( o );
 		}
 
@@ -53,13 +57,13 @@
 			}
 		}
 
-		fire( e ) {
+		fire( ...e ) {
 
 			let obs = this.observers.slice( 0 ),
 				n = obs.length;
 
 			for( let i=0; i<n; i++ ) {
-				obs[i]( e );
+				obs[i]( ...e );
 			}
 		}
 	}
@@ -75,15 +79,11 @@
 	class 	Observable
 	{
 		constructor( ) {
-			this._events 	= {};
+			this._event_handlers 	= {};
 		}
 
 
-		addEvents( events ) {
-			if( isString(events) ) {
-				events = [events];
-			}
-
+		addEvents( ...events ) {
 			let n = events.length,
 				i;
 
@@ -91,18 +91,18 @@
 				let name = events[i];
 
 				// already known ?
-				if( this._events[name] ) {
+				if( this._event_handlers[name] ) {
 					continue;
 				}
 
-				this._events[name] = new Event(events[i]);
+				this._event_handlers[name] = new Event(events[i]);
 			}
 		}
 
-		fireEvent( name, e ) {
-			let ev = this._events[name]
+		fireEvent( name, ...e ) {
+			let ev = this._event_handlers[name]
 			if( ev ) {
-				ev.fire( e );
+				ev.fire( ...e );
 				return;
 			}
 			else {
@@ -115,13 +115,13 @@
 				debugger;
 			}
 
-			let ev = this._events[name];
+			let ev = this._event_handlers[name];
 			if( ev ) {
 				ev.add( fn );
 				return;
 			}
 			else {
-				console.log( 'Unknown event:', name );
+				throw 'Unknown event: ' + name;
 			}
 		}
 
@@ -135,7 +135,7 @@
 				debugger;
 			}
 
-			let ev = this._events[name]
+			let ev = this._event_handlers[name]
 			if( ev ) {
 				ev.remove( fn );
 				return;
@@ -152,7 +152,7 @@
 
 		_findEvent( name ) {
 
-			let evts = this.events;
+			let evts = this._event_handlers;
 			for( let i in evts ) {
 				if( evts[i].name==name ) {
 					return evts[i];
@@ -169,12 +169,18 @@
 
 	class  Component extends Observable
 	{
-		constructor( cfg ) {
+		constructor( cfg, defaults ) {
 			super( );
 
-			this._ 			= new React.Component( );
-			this._.__debug 	= this.constructor.name;				
-			this._config 	= cfg || {};
+			// apply defaults
+			if( defaults ) {
+				cfg = apply( defaults, cfg );
+			}
+
+			//	apply config to self 
+			this._apply( cfg );
+
+			this._ = new React.Component( );
 									
 			// setup react callbacks
 			this._.render 				= ( ) => {return this._render( );}
@@ -186,14 +192,89 @@
 			this._.componentDidUpdate   = ( ) => {return this._afterUpdate( ); }
 		
 			// generate our component classname
-			this._clsName	= 'x-' + kebabCase(this.constructor.name);
-			this._defStyle 	= this._parseStyle( cfg );
-			this._chg_id 	= 1;
+			this._clsName = 'x-' + kebabCase(this.constructor.name);
+			this._chg_id = 1;
+			this._events = {};
+		}
 
-			this._data 		= null;		// real data
-			this._watched 	= null;		// generated properties
-			this._updates 	= {};
+		/**
+		 * create automatically a set function for the givan variable name
+		 * set 
+		 */
+		
+		createAccessor( ...vars ) {
+
+			let data = Object.keys( vars ),
+				me = this, 
+				p;
+
+			for( p in data ) {
 			
+				let iname = vars[p],
+					name = camelCase( iname, true );
+
+				this['set' + name ] = function( value ) {me._setValue(iname,value); return me;};
+				this['get' + name ] = function( ) { return me[iname]; };
+			}
+		}
+
+		/**
+		 * automatically bind methods matching 'match' to this
+		 * match is a regular expression. by default bind all methods starting by 'on'
+		 */
+		
+		bindAll( match ) {
+			match = match || /^on.*/;
+
+			let n = 0,
+				els = Object.getOwnPropertyNames(this.__proto__);
+
+			for( let m in els ) {
+				let name = els[m];
+				if( isFunction(this[name]) && match.test(name) ) {
+					this[name] = this[name].bind(this);
+					this[name].__bounded = true;
+					n++;
+				}
+			}
+
+			if( n==0 ) {
+				console.log( 'Useless bindAll call' );
+			}
+		}
+
+		/**
+		 * append automatically events to the dom and bind methods to this
+		 */
+		
+		bindEvents( events ) {
+			for( let m in events ) {
+				if( events.hasOwnProperty(m) && events[m] ) {
+					let fn = events[m];
+					if( !fn.__bounded ) {
+						fn = fn.bind(this);
+					}
+					
+					this._events[m] = fn;
+				}
+			}
+		}
+
+		/**
+		 * apply element on this
+		 * cannot redefine an already defined element
+		 */
+		
+		_apply( cfg ) {
+			for( let c in cfg ) {
+				if( cfg.hasOwnProperty(c) ) {
+					if( c in this ) {
+						throw 'You cannot define a parameter that squash something in the component';
+					}
+
+					this[c] = cfg[c];
+				}
+			}
 		}
 
 		/**
@@ -245,18 +326,9 @@
 				props[i] = desc[i];
 			}
 
-			props.style = this._parseStyle(desc);
+			// merge styles
+			props.style = apply( lvl==0 ? this._parseStyle( this ) : {}, this._parseStyle(desc) );
 			
-			if( lvl==0 ) {
-
-				// merge undefined styles from def style
-				for( i in this._defStyle ) {
-					if( this._defStyle.hasOwnProperty(i) && !props.style.hasOwnProperty(i) ) {
-						props.style[i] = this._defStyle[i];
-					}
-				}
-			}
-
 			//	prepare sub elements
 			t = desc.items;
 			if( t ) {
@@ -300,13 +372,10 @@
 			}
 
 			//	for the main element, we add events handlers
-			if( lvl==0 && this.events ) {
-				t = this.events;
+			if( lvl==0 && this._events ) {
+				t = this._events;
 				for( i in t ) {
-					let fn = t[i];
-					if( fn ) {
-						props[i] = fn.bind(this);
-					}
+					props[i] = t[i];
 				}
 			}
 
@@ -373,32 +442,6 @@
 			}
 
 			return style;
-		}
-
-
-		/**
-		 * 
-		 */
-		
-		setDataModel( model ) {
-			
-			// remove old generated properties
-			if( this._data ) {
-				
-				let watched = Object.keys( this._watched ),
-					p;
-
-				for( p in watched ) {
-					if( !model.hasOwnProperty(p) ) {
-						delete this[p];
-						delete this._watched[p];
-					}
-				}
-			}
-
-			this._data = model;
-			this._genProperties( );
-			this._dataChanged( );
 		}
 
 		/**
@@ -488,11 +531,18 @@
 			return event.target==this._;
 		}
 
-		setData( obj ) {
+		set( name, value ) {
 			
-			let chg = false;			
+			if( !isObject(name) ) {
+				this._setValue( name, value );
+				return;
+			}
+
+			let obj = name,
+				chg = false;			
+
 			for( let d in obj ) {
-				chg |= this._setDataValue( d, obj[d], true );
+				chg |= this._setValue( d, obj[d], true );
 			}
 
 			if( chg ) {
@@ -504,6 +554,7 @@
 		 * define all properies of data as direct properties
 		 */
 		
+		/*
 		_genProperties( target ) {
 			
 			let data = Object.keys( this._data ),
@@ -525,30 +576,29 @@
 					continue;
 				}
 
-				this['set' + name ] = ( value ) => {me._setDataValue(iname,value);return me;}
-				this['get' + name ] = ( ) => { return me._data[iname];}
+				this['set' + name ] = ( value ) => {me._setValue(iname,value);return me;}
+				this['get' + name ] = ( ) => { return me.[iname];}
 
 				watched[name] = true;
 			}
 
 			this._watched = watched;
 		}
+		*/
 
-		_setDataValue( name, value, quiet ) {
+		_setValue( name, value, quiet ) {
 
-			let 	data = this._data,
-					chg = false;
+			let 	chg = false;
 
-			if( !data.hasOwnProperty(name) ) {
+			if( !this.hasOwnProperty(name) ) {
 				throw 'Unknown data property ' + name;
 			}
 
-			if( data[name] !== value ) {
+			if( this[name] !== value ) {
 
 				chg = true;				
-				data[name] = value;
-				this._updates[name] = true;
-
+				this[name] = value;
+				
 				if( !quiet ) {
 					this._dataChanged( );
 				}
@@ -556,7 +606,7 @@
 
 			return chg;
 		}
-
+		
 		_dataChanged( ) {
 			this._refresh( );
 		}
@@ -565,14 +615,8 @@
 		 * fire a refresh on the object
 		 */
 		
-		_refresh( force ) {
-
-			if( force ) {
-				this._.forceUpdate( );
-			}
-			else {
-				this._.setState( {_:this._chg_id++} );
-			}
+		_refresh( callback ) {
+			this._.setState( {_:this._chg_id++}, callback );
 		}
 
 		_getDOM( ) {

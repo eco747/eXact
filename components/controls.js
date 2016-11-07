@@ -1,40 +1,43 @@
 /**
  * 	Icon class
- * 	can be an image (<img>) or a glyph (font) or a css glyph (fontawesome)
  */
 
 class Icon extends Component
 {
-	constructor( ...a ) {
-		super( ...a );
+	/**
+	 * constructor
+	 * @param  {Object} cfg - default configutation
+	 * @param {String} cfg.icon - icon to use for rendering, if the value is in the form xx@xxx, the Icon component use font glyphs else it use <img>
+	 * @param {Number} cfg.size - icon size, if undefined use the default element size
+	 *
+	 * TODO: img tag
+	 */
+	
+	constructor( cfg ) {
+		super( cfg );
 
-		this.re_glyph = /(\w+)\@([\w_-]+)/;
+		this.bindAll( );
+		this.addEvents( 'click' );
 
-		this.setDataModel( {
-			glyph: this._config.glyph,		
-			size: this._config.size,
-		} );
-	}
-
-	_setIcon( glyph ) {
-		this._data.glyph = glyph;
+		this.bindEvents({
+			onclick: this.onClick
+		});
 	}
 
 	render( ) {
-	
-		let { glyph, size } = this._data,	
+		let { icon, size } = this,	
 			cls;
 
-		if( !glyph ) {
+		if( !icon ) {
 			return null;
 		}
 
-		if( glyph.match(this.re_glyph) ) {
-			let x = this.re_glyph.exec( glyph );
+		if( icon.match(Icon.GlyphRE) ) {
+			let x = Icon.GlyphRE.exec( icon );
 			cls = x[1] + ' fa-' + x[2];
 		}
 		else {
-			cls = glyph;
+			cls = icon;
 		}
 
 		let style = {textAlign: 'center'};
@@ -49,28 +52,45 @@ class Icon extends Component
 			tag: 'i',
 			cls: cls,
 			style: style,
-			onclick: this._config.onclick
 		}
+	}
+
+	onClick( ) {
+		this.fireEvent('click');
 	}
 }
 
+Icon.GlyphRE = /(\w+)\@([\w_-]+)/;
+
+
+
+
 /**
+ * Sizer class
+ * a sizer is an object the appear on the border or a container object and allow sizing of it's parent
  * TODO: refresh parent layout when done
  */
 
 class 	Sizer extends Component {
 
-	constructor( ...a ) {
-		super(...a);
+	/**
+	 * constructor
+	 * 	@param {String} cfg.side - sizer side one of 'left','top','right','bottom'
+	 * 	@param {Function} cfg.handler - function to call on sizing fn(side,size)
+	 * 	
+	 */
+	
+	constructor( cfg ) {
+		super( cfg );
 
-		this.addEvents(['sizestart','sizeend']);
+		this.addEvents( 'sizestart','sizeend', 'sizechanged' );
 	}
 
 	render( ) {
 
 		let style;
 
-		if( this._config.side==='right' ) {
+		if( this.side==='right' ) {
 			style = {
 				right: 0,
 				top: 0,
@@ -80,7 +100,7 @@ class 	Sizer extends Component {
 				cursor: 'ew-resize',
 			}
 		}
-		else if( this._config.side==='bottom' ) {
+		else if( this.side==='bottom' ) {
 			style = {
 				left: 0,
 				right: 0,
@@ -92,31 +112,44 @@ class 	Sizer extends Component {
 		}
 		
 		return {
-			cls: this._config.side,
+			cls: this.side + (this._sizing ? ' sizing':''),
 			style: style,
 			onmousedown: this._resize.bind(this)
 		}
 	}
 
+	/**
+	 * @internal
+	 */
+	
 	_resize( evt ) {
 
 		let me = this,
-			side = me._config.side,
-			parent = this._config.target,
+			side = me.side,
+			parent = this.target,
 			dom = React.findDOMNode( parent._ ),
 			rc = dom.getBoundingClientRect( ),
 			dx, dy;
 
-		this.fireEvent( 'sizestart' );
+		me.fireEvent( 'sizestart' );
+		me._sizing = true;
+		me._refresh( );
 			
 		function mouseMove( e ) {
+			let size;
+
 			if( side=='right' ) {
-				dx = evt.x - rc.right;
-				parent.setWidth( e.x - dx - rc.left );
+				size  = e.x-(evt.x - rc.right)-rc.left
 			}
 			else if( side=='bottom' ) {
-				dy = evt.y - rc.bottom;
-				parent.setHeight( e.y - dy - rc.top );	
+				size = e.y - (evt.y - rc.bottom) - rc.top;
+			}
+
+			if( size!==undefined ) {
+				me.fireEvent( 'sizechanged', me.side, e.x-dx-rc.left );
+				if( me.handler ) {
+					me.handler( me.side, size )
+				}
 			}
 
 			e.preventDefault( );
@@ -126,7 +159,9 @@ class 	Sizer extends Component {
 			window.removeEventListener( 'mousemove', mouseMove );
 			window.removeEventListener( 'mouseup', mouseUp );				
 
-			this.fireEvent( 'sizeend' );
+			me.fireEvent( 'sizeend' );
+			me._sizing = false;
+			me._refresh( );
 		}
 
 		window.addEventListener( 'mousemove', mouseMove );
@@ -134,129 +169,165 @@ class 	Sizer extends Component {
 	}
 }
 
+
 /**
  * 	Panel class
+ * 	panel is a simple container.
+ * 	It can be sizable if needed
  */
 
 class 	Panel extends Component
 {
-	constructor( ...a ) {
-		super( ...a );
+	/**
+	 * constructor
+	 * @param {String} cfg.sizers - a string describing sizing borders, 'l' for left, 't' for top, 'r' for right, 'b' for bottom. ie: 'ltbr' mean left top right bottom and 'r' mean right.
+	 */
+	
+	constructor( cfg ) {
+		super( cfg );
 
-		this.setDataModel( {
-			width: this._config.width,
-		})
+		this.bindAll( );
+
+		this._sizers = {};
 	}
 
 	render( ) {
 
-		let style = {
-			width: this._data.width,
-			borderRight: '1px solid #000',
+		let style = apply( this.style, {
 			boxSizing: 'border-box',
-			padding: 8,
 			overflow: 'auto',
 			display: 'flex',
 			position: 'relative',
-		};
+			
+			padding: 8, //<<< review: let css do		
+		});
 
-		let content = this._config.content;
+		let content = this.content;
 		if( content ) {
 			content.flex = 1;
-			content.style = content.style || {};
-			content.style.minHeight = 'min-content';
+			content.style = apply( content.style, {minHeight:'min-content'} );
 		}
 
 		let items = [content];
-		if( 1 ) {
-			items.push( new Sizer({side:'right',target:this}) )
+		if( this.sizers ) {
+			if( this.sizers.indexOf('r')>=0 ) {
+				this._createSizer( 'right' );
+			}
+			//review: todo other sides
 		}
 
 		return  {
 			style: style,
-			items: items
+			items: [
+				content,
+				this._sizers.right,
+				this._sizers.bottom,
+			]
 		};
+	}
+
+	_createSizer( side ) {
+		if( !this._sizers[side] ) {
+			this._sizers[side] = new Sizer({side:side,target:this,handler:this.onSizeChanged});
+		}
+	}
+
+	onSizeChanged( side, size ) {
+		//review: really dirty
+		if( side=='right' ) {
+			this.width = size;
+		}
+		else if( side=='bottom' ) {
+			this.height = size;
+		}
+
+		Exact.application._refresh( );
 	}
 }
 
 /**
  * Standard button
- * config:
- * 	title
  */
 
 class 	Button extends Component
 {
-	constructor( ...a ) {
-		super( ...a );
+	/**
+	 * constructor
+	 * @param  {String} cfg.title - button title
+	 * @param {Boolean} cfg.defFocus - if true, the button is the default focus
+	 * @param {Function} cfg.handler - function o call on click
+	 */
+	
+	constructor( cfg ) {
+		super( cfg );
 
-		this.setDataModel({
-			title: this._config.title,
+		this.bindAll( );
+		this.addEvents( 'click' );
+
+		this.bindEvents({
+			onclick: this.onClick,
+			onkeypress: this.onKey,
 		});
 
-		this.addEvents('click');
+		this.createAccessor( 'title' );
 	}
 
 	render( ) {
 
-		let {title} = this._data;
-
 		return {
-			cls: (this._config.deffocus ? ' x-default': ''),
+			cls: (this.defFocus ? ' x-default': ''),
 			tabIndex: 1,
 			style: {
 				textAlign: 'center',
 				cursor: 'pointer',
 			},
-			content: title,
-			onclick: this.onClick.bind(this),
-			onkeypress: this.onKey.bind(this),
+			content: this.title,
 		}
 	}
 
 	onKey( e ) {
 		if( e.charCode==32 || e.charCode==13 ) {
-			this.fireEvent('click');	
+			this.onClick( e );
 		}
 	}
 
 	onClick( e ) {
 		this.fireEvent('click');
+		if( this.handler ) {
+			this.handler( );
+		}
 	}
 }
 
 /**
  * Standard text field with label
- * 
- * config:
- * 	value
- * 	label
- * 	required
- * 	labelWidth
- * 	labelAlign: 'left', 'right', 'top'
- * 	textHint
  */
 
 class 	TextField extends Component
 {
-	constructor( ...a ) {
-		super( ...a );
+	/**
+	 * constructor
+	 * @param  {String} cfg.value - edit content
+	 * @param {String} cfg.label - label text on the edit side
+	 * @param {Boolean} cfg.required - if true, an the edit will be on error if empty
+	 * @param {Number} cfg.labelWidth - label width
+	 * @param {String} cfg.labelAlign - label alignment, one of 'left', 'right', 'top'
+	 * @param {String} cfg.textHint - text hint (text shown when the edit is empty)
+	 */
+	
+	constructor( cfg ) {
+		super( cfg );
 
-		this.setDataModel({
-			value: this._config.value,
-			label: this._config.label,
-		});
+		this._error = false;
 
-		this.error = false;
-
-		this.addEvents( ['change','blur','focus'] );
+		this.bindAll( );
+		this.addEvents( 'change','blur','focus' );
 	}
 
 	render( ) {
 
-		let { labelWidth, labelAlign, textHint, required } = this._config;
-		let { value, label } = this._data;
-
+		let { value, label, labelWidth, labelAlign, textHint, required } = this;
+		
 		let items = [],
 			vert = labelAlign=='top';
 
@@ -264,26 +335,26 @@ class 	TextField extends Component
 		if( label || labelWidth ) {
 
 			items.push( {
-				cls: 'x-label' + (required ? ' x-required' : '') + (this.error ? ' x-error' : '')  + (vert ? ' x-vert' : ''),
+				cls: 'x-label' + (required ? ' x-required' : '') + (this._error ? ' x-error' : '')  + (vert ? ' x-vert' : ''),
 				style: {textAlign: labelAlign},
 				width: labelWidth,
 				flex: labelWidth || 1,
-				content: (this._data.label + ':')
+				content: (this.label + ':')
 			});
 		}
 
 		// prepare input ------------------
 		items.push({
 			tag: 'input',
-			cls: (this.error ? 'x-error' : '' ) + (vert ? ' x-vert' : ''),
+			cls: (this._error ? 'x-error' : '' ) + (vert ? ' x-vert' : ''),
 			flex: 1,
 			style: {
 				type: 'text',
 			},
 			placeholder: textHint,
-			onchange: ( e ) => { this.fireEvent('change',e.target.value); },
-			onblur: this.onBlur.bind(this),
-			onfocus: ( e ) => { this.fireEvent('focus',e); },
+			onchange: this.onChange,
+			onblur: this.onBlur,
+			onfocus: this.onFocus,
 		});
 
 		return {
@@ -295,12 +366,20 @@ class 	TextField extends Component
 		}
 	}
 
+	onChange( e ) {
+		this.fireEvent( 'change', e.target.value );
+	}
+
+	onFocus( e ) {
+		this.fireEvent( 'focus', e );
+	}
+
 	onBlur( e ) {
 
 		let value = e.target.value;
 		this.fireEvent( 'blur', value, e );
 
-		if( this._config.required ) {
+		if( this.required ) {
 			let err = value.length==0;
 
 			if( err!=this.error ) {
@@ -312,31 +391,40 @@ class 	TextField extends Component
 }
 
 /**
- *
- * 
+ * Standard CheckBox
  */
 
 class 	CheckBox extends Component
 {
-	constructor( ...a ) {
-		super( ...a );
+	/**
+	 * constructor
+	 * @param  {String} cfg.value - edit content
+	 * @param {String} cfg.label - label text on the edit side
+	 * @param {Number} cfg.labelWidth - label width
+	 * @param {String} cfg.labelAlign - label alignment, one of 'left', 'right', 'top'
+	 * @param {String} cfg.iconCheck - specific icon when checked
+	 * @param {String} cfg.iconUncheck - specific icon when unchecked
+	 */
+	constructor( cfg ) {
+		super( cfg, {value:false} );
 
-		this.setDataModel({
-			value: this._config.value,
-			label: this._config.label,
+		this._error = false;
+		this._icon = new Icon( );
+		
+		this.bindAll( );
+		this.addEvents( 'changed','blur','focus' );
+
+		this.bindEvents({
+			onchange: this.onChange
 		});
 
-		this.error = false;
-		this.icon = new Icon( );
-		
-		this.addEvents('changed','blur','focus');
+		this.createAccessor( 'value' );
 	}
 
 	render( ) {
 
-		let { labelWidth, labelAlign, icon_check, icon_uncheck } = this._config;
-		let { value, label } = this._data;
-
+		let { value, label, labelWidth, labelAlign, iconCheck, iconUncheck } = this;
+		
 		let items = [];
 
 		// prepare input ------------------
@@ -355,7 +443,6 @@ class 	CheckBox extends Component
 			},
 			value: 'on',
 			checked: value,
-			onchange: this.onClick.bind(this),
 		});
 
 		// prepare label -----------------
@@ -365,18 +452,18 @@ class 	CheckBox extends Component
 				style: {textAlign: labelAlign,marginRight:4},
 				width: labelWidth,
 				flex: labelWidth || 1,
-				content: this._data.label,
+				content: label,
 			});
 		}
 
 		if( value ) {
-			this.icon._data.glyph = (icon_check || 'fa@check-square-o');
+			this._icon.icon = (iconCheck || 'fa@check-square-o');
 		}
 		else {
-			this.icon._data.glyph = (icon_uncheck || 'fa@square-o');
+			this._icon.icon = (iconUncheck || 'fa@square-o');
 		}
 
-		items.push( this.icon );
+		items.push( this._icon );
 
 		return {
 			tag: 'label',
@@ -390,57 +477,62 @@ class 	CheckBox extends Component
 		}
 	}	
 
-	onClick( e ) {
+	onChange( e ) {
 		let checked = e.target.checked;
 		this.fireEvent('changed',checked);
 		this.setValue( checked );
 	}
 }
 
+
 /**
- *
+ *	Application Bar
  */
 
 class AppBar extends Component
 {
-	constructor( ...a ) {
-		super( ...a );
+	/**
+	 * constructor
+	 * @param  {String} cfg.title - application title
+	 * @param {Menu} cfg.menu - application menu
+	 * @param {String} cfg.icon - application icon
+	 */
+	
+	constructor( cfg ) {
+		super( cfg );
 
-		this.setDataModel( {
-			title: this._config.title || ' ',		// title shown
-			menu: this._config.menu || null,
-			icon: this._config.icon || null
-		} );
+		this.bindAll( );
 
-		this.icon	= new Icon();
-		this.menu_icon 	= new Icon({
-			glyph:'fa@bars',
+		this._icon = new Icon();
+		this._menu_icon = new Icon({
+			icon:'fa@bars',
 			style: {cursor:'pointer'},
-			onclick:this.menuClick.bind(this)
 		});
+
+		this._menu_icon.on('click', this.onMenuClick );
 	}
 
-	menuClick( ) {
-		if( this._data.menu ) {
-			this._data.menu.show( {ref:this.menu_icon,align:'brtr'} );
+	onMenuClick( ) {
+		if( this.menu ) {
+			this.menu.show( {ref:this._menu_icon,align:'brtr'} );
 		}
 	}
 
 	render( ) {
 
-		if( this._data.icon ) {
-			this.icon._setIcon( this._data.icon );
+		if( this.icon ) {
+			this._icon.icon = this.icon;
 		}
 
 		return {
 			layout: 'horizontal',
 			items: [
-				this.icon,
+				this._icon,
 				{
 					cls: 'x-text',
-					content: this._data.title
+					content: this.title
 				},
-				this._data.menu ? this.menu_icon : null
+				this.menu ? this._menu_icon : null
 			]
 		};
 	}
@@ -448,68 +540,97 @@ class AppBar extends Component
 
 
 /**
- * 
+ * BottomNavigationBarItem class
+ * TODO: replace by standard buttons
  */
 
 class BottomNavigationItem extends Component
 {
-	constructor( {title,icon,onclick} ) {
-		super( );
+	/**
+	 * constructor
+	 * @param  {String} cfg.title - item title
+	 * @param  {String} cfg.icon - item icon
+	 * @param {Function} cfg.handler - function o call on click
+	 */
+	
+	constructor( cfg ) {
+		super( cfg );
 
-		this.icon = new Icon( {glyph:icon} );
-		this.setDataModel({
-			title: title || ' ',
-			hover: false
-		});
+		this._icon = new Icon( {icon:this.icon} );
+		this._hover = false;
+		
+		this.bindAll( );
+		this.addEvents( 'click' );
 
-		this.events = {
+		this.bindEvents({
 			onmouseenter: this.onMouseEnter,
 			onmouseleave: this.onMouseLeave,
-			onclick: onclick
-		}
+			onclick: this.onClick
+		});
 	}
 
 	render( ) {
 		return {
-			cls: this._data.hover ? 'x-hover' : '',
+			cls: this._hover ? 'x-hover' : '',
 			items: [
-				this.icon,
+				this._icon,
 				{
 					div: 'span',
 					cls: ' x-text',
-					content: this._data.title
+					content: this.title
 				}
 			]
 		}
 	}
 
 	onMouseEnter( e ) {
-		this.setHover( true );
+		this.set( '_hover',true );
 	}
 
 	onMouseLeave( e ) {
-		this.setHover( false );
+		this.set( '_hover',false );
+	}
+
+	onClick( e ) {
+		this.fireEvent( 'click' );
+		if( this.handler ) {
+			this.handler( );
+		}
 	}
 }
 
 /**
- *
+ *	BottomNavigationBar class
  */
 
 class BottomNavigation extends Component
 {
-	constructor({buttons} ) {
-		super( );
-
-		this.setDataModel({
-			buttons: buttons	
-		});
+	/**
+	 * constructor
+	 * @param  {[BottomNavigationBarItem]} cfg.buttons
+	 */
+	
+	constructor( cfg ) {
+		super( cfg );
 	}
 
 	render( ) {
 		return {
-			items: this._data.buttons
+			items: this.buttons
 		}
 	}
 }
+
+/**
+ * Application class
+ */
+
+class Application extends Component
+{
+	constructor( cfg ) {
+		super( cfg );
+		Exact.application = this;
+	}
+}
+
 

@@ -27,7 +27,7 @@ body {
 	position: absolute;
 }
 
-.x-glyph {
+.x-icon .fa {
 	font-family: fontawesome;
 	display: inline-block;
 }
@@ -69,7 +69,6 @@ body {
     justify-content: center;
     border-top: 1px solid #eeeeee;
     color: rgba(0, 0, 0, 0.541176);
-    cursor: pointer;
     padding-top: 8px;
 
     .x-bottom-navigation-item {
@@ -80,7 +79,8 @@ body {
 		min-width: 80px;
 		max-width: 168px;
 		text-align: center;
-
+		cursor: pointer;
+    
 		&.x-hover {
 			color: #00bcd4;
 		}		
@@ -119,6 +119,11 @@ body {
 		.x-cell {
 			padding: 12px 8px;
 			cursor: default;
+			white-space: nowrap;
+
+			&.sortable {
+				cursor: pointer;				
+			}
 
 			.x-sort {
 				display: inline-block;
@@ -156,6 +161,7 @@ body {
 			display: flex;
 			align-items: center;
 			overflow: hidden;
+			white-space: nowrap;
 		}
 	}
 }
@@ -286,18 +292,12 @@ body {
 	}
 	.x-button {
 		background-color: #bf360c;
-	}
-}
-
-.x-warning {
-	border-left: 8px solid #ffc107;
-	.x-icon {
-		color: #00BCD4;
+		color: white;
 	}
 }
 
 .x-info {
-	border-left: 8px solid #8bc34a;
+	border-left: 8px solid #00BCD4;
 	.x-icon {
 		color: #4caf50;
 	}
@@ -337,7 +337,15 @@ body {
 }
 
 .x-sizer {
-	&.right:hover {
-		background-color: #00838f;
+	&.right {
+		border-right: 1px solid #eeeeee;
+
+		&:hover {
+			background-color: #eeeeee;
+		}
+
+		&.sizing {
+			background-color: #00838f;
+		}
 	}
 }

@@ -5,7 +5,7 @@ window.onload = function( ) {
 	 *
 	 */
 
-	class App extends Component
+	class App extends Application
 	{
 		constructor( ) {
 
@@ -81,12 +81,12 @@ window.onload = function( ) {
 					new BottomNavigationItem({
 						title: 'Recent', 
 						icon: 'fa@undo',
-						onclick: this.recentClick.bind(this)
+						handler: this.recentClick.bind(this)
 					}),
 					new BottomNavigationItem({
 						title: 'BlueTooth', 
 						icon: 'fa@bluetooth',
-						onclick: this.alertClick.bind(this)
+						handler: this.alertClick.bind(this)
 					})
 				]
 			});
@@ -176,9 +176,9 @@ window.onload = function( ) {
 			}
 
 
-			let canvas = new Canvas({render:draw,type:'2d', flex:1});
+			let canvas = new Canvas({renderer:draw,type:'2d', flex:1});
 
-			setInterval( function() {canvas._refresh()}, 1000 );
+			setInterval( function() {canvas._refresh()}, 500 );
 
 			let dlg = {
 				layout: 'vertical',
@@ -205,7 +205,7 @@ window.onload = function( ) {
 				]
 			};
 
-			return new Panel( {width: 300, content: dlg} );
+			return new Panel( {width:300, content:dlg, sizers:'r'} );
 		}
 
 		/**
@@ -249,11 +249,11 @@ window.onload = function( ) {
 
 		alertClick( ) {
 			// content is formatted html, care never use html when content come from outside of your application
-			Exact.alert( {title:'Alert !', autoClose: 20, clickDismiss:true, html: "Le Lorem Ipsum est simplement du faux texte employé dans la composition et la mise en page avant impression. Le <b>Lorem Ipsum</b> est le faux texte standard de l`imprimerie depuis les années 1500, quand un peintre anonyme assembla ensemble des morceaux de texte pour réaliser un livre spécimen de polices de texte. Il n'a pas fait que survivre cinq siècles, mais s'est aussi adapté à la bureautique informatique, sans que son contenu n'en soit modifié. <br/>Il a été popularisé dans les années 1960 grâce à la vente de feuilles Letraset contenant des passages du Lorem Ipsum, et, plus récemment, par son inclusion dans des applications de mise en page de texte, comme Aldus PageMaker."} );
+			Exact.MessageBox( {cls:'x-alert', title:'Alert !', autoClose: 20, clickDismiss:true, html: "Le Lorem Ipsum est simplement du faux texte employé dans la composition et la mise en page avant impression. Le <b>Lorem Ipsum</b> est le faux texte standard de l`imprimerie depuis les années 1500, quand un peintre anonyme assembla ensemble des morceaux de texte pour réaliser un livre spécimen de polices de texte. Il n'a pas fait que survivre cinq siècles, mais s'est aussi adapté à la bureautique informatique, sans que son contenu n'en soit modifié. <br/>Il a été popularisé dans les années 1960 grâce à la vente de feuilles Letraset contenant des passages du Lorem Ipsum, et, plus récemment, par son inclusion dans des applications de mise en page de texte, comme Aldus PageMaker."} );
 		}
 
 		recentClick( ) {
-			Exact.info( {autoClose: 200, clickDismiss:true, text: "Le Lorem Ipsum est simplement du faux texte employé dans la composition et la mise en page avant impression. Le Lorem Ipsum est le faux texte standard de l`imprimerie depuis les années 1500, quand un peintre anonyme assembla ensemble des morceaux de texte pour réaliser un livre spécimen de polices de texte. Il n'a pas fait que survivre cinq siècles, mais s'est aussi adapté à la bureautique informatique, sans que son contenu n'en soit modifié. Il a été popularisé dans les années 1960 grâce à la vente de feuilles Letraset contenant des passages du Lorem Ipsum, et, plus récemment, par son inclusion dans des applications de mise en page de texte, comme Aldus PageMaker."} );
+			Exact.MessageBox( {cls:'x-info', autoClose: 200, clickDismiss:true, text: "Le Lorem Ipsum est simplement du faux texte employé dans la composition et la mise en page avant impression. Le Lorem Ipsum est le faux texte standard de l`imprimerie depuis les années 1500, quand un peintre anonyme assembla ensemble des morceaux de texte pour réaliser un livre spécimen de polices de texte. Il n'a pas fait que survivre cinq siècles, mais s'est aussi adapté à la bureautique informatique, sans que son contenu n'en soit modifié. Il a été popularisé dans les années 1960 grâce à la vente de feuilles Letraset contenant des passages du Lorem Ipsum, et, plus récemment, par son inclusion dans des applications de mise en page de texte, comme Aldus PageMaker."} );
 		}
 	}  
 

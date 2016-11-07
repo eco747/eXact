@@ -1,7 +1,7 @@
 (function($$) {
 
 	/**
-	 * Row class
+	 * Grid Row class
 	 * responsible to setup cells in a row
 	 *
 	 * BUG: when h-sizing & hscrollbar disapear, we loose the content
@@ -9,24 +9,22 @@
 
 	class 	Row extends Component
 	{
-
-		constructor( columns, store ) {
-			super( );
-
-			this.setDataModel({
-				top: 0,
-				height: 0,
-				index: 0,
-				visible: true
-			});
-
-			this.store = store;
-			this.columns = columns;
-			this.visible = true;
+		/**
+		 * constructor
+		 * @param  {Number} cfg.top - top position
+		 * @param {Number} cfg.height - element height
+		 * @param {Any} cfg.index - element index in the data store
+		 * @params {DataStore} cfg.store - data store to work on
+		 * @param {Boolean} cfg.visible - visible or not
+		 * @param {Object} cfg.columns - columns description
+		 */
+		
+		constructor( cfg ) {
+			super( cfg, {top:0,height:0,index:0,visible:true} );
 		}
 
 		render( ) {
-			let { top, height, index, visible } = this._data;
+			let { top, height, index, visible } = this;
 			
 			let cells = [],
 				rec = this.store.getAt( index ),
@@ -34,7 +32,7 @@
 				len = cols.length,
 				model = this.store.model;
 
-			if( rec && this._data.visible ) {
+			if( rec && visible ) {
 				for( let c=0; c<len; c++ ) {
 
 					let col = cols[c],
@@ -45,7 +43,7 @@
 					}
 					else {
 						style.flexGrow = col.flex ? col.flex : 1;
-						style.width = 1;
+						style.flexBasis = 1;
 					}
 
 					let content;
@@ -85,24 +83,27 @@
 	}
 
 	/**
-	 * grid header
+	 * Grid Header
 	 * TODO: put in inside a container
 	 */
 
 	class 	Header extends Component
 	{
-		constructor( columns ) {
-			super( );
+		/**
+		 * constructor
+		 * @param {Object} cfg.columns - columns description
+		 * @param {Number} cfg.scrollLeft - left scoll position
+		 * @param {Number} cfg.totalWidth - total width of the element
+		 */
+		
+		constructor( cfg ) {
+			super( cfg, {scrollLeft:0, scrollTop:0} );
 
-			this.setDataModel({
-				scrollLeft: 0,
-				totalWidth: 0,
-			});
-
-			this.columns = columns;
-			
-			// you will be able to listen these events
 			this.addEvents( 'headerclick' );
+		}
+
+		reset( ) {
+			this.totalWidth = 0;
 		}
 
 		render( ) {
@@ -122,7 +123,7 @@
 				}
 				else {
 					style.flexGrow = col.flex ? col.flex : 1;
-					style.width = 1;
+					style.flexBasis = 1;
 				}
 
 				let sorter;
@@ -146,7 +147,7 @@
 				};
 
 				if( col.sortable ) {
-					itm.style.cursor = 'pointer';
+					itm.cls += ' sortable';
 					itm.onclick = this.onItemClick.bind( this, col );
 				}
 
@@ -154,9 +155,9 @@
 			}
 
 			main_style = {
-				left: -this._data.scrollLeft,
+				left: -this.scrollLeft,
 				position: 'relative',
-				width: this._data.totalWidth || '100%',
+				width: this.totalWidth || '100%',
 			};
 
 			return {
@@ -172,23 +173,28 @@
 	}
 
 	/**
-	 *
+	 *	Generic Container class
 	 */
 
 	class 	Container extends Component
 	{
-		constructor( ) {
-			super( );
-
-			this.setDataModel({
-				totalWidth: 0,
-				totalHeight: 0,
-				renderContent: emptyFn
-			});
+		/**
+		 * constructor
+		 * @param  {Number} cfg.totalWidth - total width of the element
+		 * @param {Number} cfg.totalHeight - total height of the element
+		 * @param {Function} cfg.renderer - renderer for the element
+		 */
+		constructor( cfg ) {
+			super( cfg, {totalHeight:0,totalWidth:0} );
 		}		
 
+		reset( ) {
+			this.totalWidth = 0;
+			this.totalHeight = 0;
+		}
+
 		render( ) {
-			const {totalWidth,totalHeight} = this._data;
+			const {totalWidth,totalHeight} = this;
 
 			return {
 				style: {
@@ -196,25 +202,32 @@
 					height: totalHeight,
 					position: 'relative',
 				},
-				items: this._data.renderContent( )
+				items: this.renderer( )
 			}
 		}
 	}
 
 	/**
-	 *
+	 *	Generic Viewport
+	 *	A viewport contains a simple Container
 	 */
 
 	class 	Viewport extends Component
 	{
-		constructor( content ) {
-			super( );
+		/**
+		 * constructor
+		 * @param {Number} scrollLeft - left scroll pos
+		 * @param {Number} scrollTop - top scroll pos
+		 */
+		
+		constructor( cfg ) {
+			super( cfg, {scrollLeft:0, scrollTop:0} );
 
-			this.setDataModel({
-				onScroll: emptyFn
+			this.addEvents( 'scroll' );
+			this.bindEvents({
+				onscroll: this.onScroll
 			});
-			
-			this.content = content;
+
 			this._dom 	 = null;
 		}
 
@@ -223,7 +236,6 @@
 		}
 
 		render( ) {
-
 			return {
 				ref: this.acquireRef.bind(this),
 				flex: 1,
@@ -232,17 +244,18 @@
 					boxSizing: 'border-box',
 					left: 0,
 					right: 0,
-				},
-				
-				onscroll: 	this._data.onScroll,
+				}
 			};
+		}
+
+		onScroll( e ) {
+			this.fireEvent( 'scroll', e );
 		}
 	}
 
 
 	/**
-	 *
-	 * column:
+	 * column definition:
 	 * 	title: string column title
 	 * 	sortable: boolean if click will sort the column
 	 * 	index: field name in the DataStore
@@ -253,38 +266,47 @@
 
 	class 	Grid extends Component
 	{
-		constructor( {store, columns, style } ) {
-			super( arguments[0] );
+		/**
+		 * constructor
+		 * @param  {Number} cfg.rowHeigth - default height for all columns
+		 * @param {DataStore} cfg.store - data store to use
+		 * @param {Object} cfg.columns - columns to render
+		 * @param {Number} cfg.rowHeight - default row height
+		 */
+		constructor( cfg ) {
+			super( cfg, {rowHeight:40} );
 
-			this.setDataModel({
-				rowHeight: 40
-			});
+			if( this.rowHeight<=10 ) {
+				this.rowHeight = 10;
+			}
+
+			this.bindAll( );
 
 			this._scrollbarSize = getScrollbarSize( );
+			this._totalWidth = this._calcWidth( );
+			this._totalHeight = this._calcHeight( );
 
-			this.content 	= new Container( );
-			this.viewport 	= new Viewport( this.content );
-			this.header 	= new Header( columns );
+			this._content 	= new Container( {renderer:this.onRenderRows,totalWidth:this._totalWidth,totalHeight:this._totalHeight} );
+			this._viewport 	= new Viewport( );
+			this._header 	= new Header( {columns:this.columns,totalWidth:this._totalWidth} );
 			
-			this.columns 	= columns;
-			this.store 		= store;
-			this.retrig 	= 0;
-
-			this.updateTitle 	= true;
-
-			this.viewport.setOnScroll( this._onScroll.bind(this) );
-			this.content.setRenderContent( this._renderRows.bind(this,true) );
+			this._viewport.on( 'scroll', this.onScroll );
 			
-			this.rowPool	= [];
-			this.scrollTop  = 0;
-			this.lastScrollTop = -1;
+			this._rowPool	= [];
+			this._scrollTop  = 0;
+			this._lastScrollTop = -1;
+			this._hasFlex = false;
+			this._flexWidth = 0;
 
-			this.header.addListener( 'headerclick', this._sortCol.bind(this) );
-
-			this.store.on('change', this._refresh.bind(this) );
+			this._header.on( 'headerclick', this.onSortCol );
+			this.store.on('change', this.onStoreChanged );
 		}
 
-		_sortCol( col ) {
+		/**
+		 * called when the user click on a sortable header
+		 */
+		
+		onSortCol( col ) {
 
 			let dir = 'ASC';
 			if( col._sorted ) {
@@ -303,6 +325,25 @@
 			this._refresh( );
 		}
 
+		onStoreChanged( ) {
+			this._rowPool = [];
+			this._header.reset( );
+			this._content.reset( );
+			this._refresh( this._createContent.bind(this) );
+		}
+
+		/**
+		 * compute content total height
+		 */
+		
+		_calcHeight( ) {
+			return this.store.getCount( ) * this.rowHeight;
+		}
+
+		/**
+		 * compute content totalWidth
+		 */
+		
 		_calcWidth( ) {
 			let cols = this.columns,
 				n = cols.length,
@@ -316,7 +357,7 @@
 					full += col.width;
 				}
 				else {
-					this.hasFlex = true;
+					this._hasFlex = true;
 
 					if( col.minWidth ) {
 						full += col.minWidth;
@@ -327,32 +368,36 @@
 			return full;
 		}
 
+		_createContent( ) {
+			this._updateRows( );
+			this._content.renderTo( this._viewport._dom );
+		}
+
 		afterMount( ) {
-			this._refreshRows( );
+			this._createContent( );
 		}
 
 		afterUpdate() {
-			asap( this._refreshRows, this );
+			//asap( this._refreshRows, this );
+			this._lastScrollTop = -1;
+			this._updateRows( );
+			this._content._refresh( );
 		}
 
-		_refreshRows( ) {
-			this.content.renderTo( this.viewport._dom );
-		}
-
-		_onScroll( event ) {
+		onScroll( event ) {
 
 			let scrollLeft = event.target.scrollLeft;
-			this.header.setScrollLeft( scrollLeft );
+			this._header.set( 'scrollLeft', scrollLeft );
 
 			let scrollTop = event.target.scrollTop,	
-				rowHeight = this._data.rowHeight;
+				rowHeight = this.rowHeight;
 			
-			this.scrollTop = scrollTop;
+			this._scrollTop = scrollTop;
 
-			let top 	= Math.floor(scrollTop/rowHeight) * rowHeight;
+			let top	= Math.floor(scrollTop/rowHeight) * rowHeight;
 			
-			if( this.lastScrollTop!=top ) {
-				this._renderRows( );	
+			if( this._lastScrollTop!=top ) {
+				this._updateRows( );	
 			}
 		}
 
@@ -362,40 +407,51 @@
 		 * then each time we need to render a line at a position we get it from an available item in the recycler.
 		 */
 		
-		_renderRows( calcRes ) {
+		_updateRows( ) {
 
-			if( !this.viewport._dom ) {
+			if( !this._viewport._dom ) {
 				return null;				
 			}
 
-			let height  		= this.viewport._dom.clientHeight,
-				width 			= this.viewport._dom.clientWidth,
-				rowHeight 		= this._data.rowHeight,
-				totalHeight 	= this.store.getCount( ) * this._data.rowHeight,
+			let rc 				= this._viewport._dom.getBoundingClientRect( ),
+				height  		= rc.height,
+				width 			= rc.width,
+				rowHeight 		= this.rowHeight,
+				totalHeight 	= this.store.getCount( ) * rowHeight,
 				i;
 
+			// avoid scrollbar hz/vt conflict
+			this._viewport._dom.style.overflow = 'hidden';
+			
 			// update content height
-			if( totalHeight!=this.totalHeight ) {
-				this.totalHeight 	= totalHeight;
-				this.content.setTotalHeight( this.totalHeight );			
+			if( totalHeight!=this._totalHeight ) {
+				this._totalHeight = totalHeight;
+				this._content.set( 'totalHeight', totalHeight );
+			}
+
+			if( totalHeight>height ) {
+				width -= this._scrollbarSize;
 			}
 
 			// update hz sizes if flex columns
-			if( (this.hasFlex && this.totalWidth<width && this.flexWidth!=width) ) {
-
-				let dom = this._getDOM( );
-
-				this.header.setTotalWidth( width-1 );
-				this.content.setTotalWidth( width-1 );
-				this.flexWidth = width;
-				this.updateTitle = false;
+			
+			if( this._totalWidth<width && this._hasFlex ) {
+				if( this._flexWidth!=width ) {
+					this._header.set( 'totalWidth', '100%' );
+					this._content.set( 'totalWidth', '100%' );
+					this._flexWidth = width;
+				}
+			}
+			else {
+				this._header.set( 'totalWidth', this._totalWidth-1 );
+				this._content.set( 'totalWidth', this._totalWidth-1 );
 			}
 
-			let	scrollTop = this.scrollTop;
+			let	scrollTop = this._scrollTop;
 							
 			// don't know why but the scrollbar allow do go after the end
-			if( scrollTop>(this.totalHeight - height - rowHeight) ) {
-				scrollTop = this.totalHeight - height - rowHeight;
+			if( scrollTop>(totalHeight - height - rowHeight) ) {
+				scrollTop = totalHeight - height - rowHeight;
 			}
 
 			let 	overscan_before, overscan_after;
@@ -404,7 +460,7 @@
 				idxBottom = idxTop + Math.ceil(height/rowHeight),
 				ndata = this.store.getCount( );
 
-			let scrollUp = (idxTop*rowHeight)<this.lastScrollTop;
+			let scrollUp = (idxTop*rowHeight)<this._lastScrollTop;
 			
 			const overscan = 5;
 			if( scrollUp ) {
@@ -430,102 +486,104 @@
 				top = idxTop * rowHeight,
 				bottom = idxBottom * rowHeight;
 
-			if( this.lastScrollTop==top && !calcRes ) {
-				return false;
-			}
+			if( this._lastScrollTop!=top ) {
+				this._lastScrollTop = top;
 
-			this.lastScrollTop = top;
+				//	setup rows
+				let	rows = this._rowPool,
+					nPool = this._rowPool.length;
 
-			//	setup rows
-			let	rows = this.rowPool,
-				nPool = this.rowPool.length;
+				// find elements that are outside visible range
+				let 	available = [];
+				let 	positions = {};
 
-			// find elements that are outside visible range
-			let 	available = [];
-			let 	positions = {};
+				for( i=0; i<nPool; i++ ) {
 
-			for( i=0; i<nPool; i++ ) {
+					let row = rows[i];
 
-				let row = rows[i];
-
-				// if not in visible redraw range, put it in available pool
-				if( (row.top + rowHeight) <= top || row.top > bottom ) {
-					available.push( row );
+					// if not in visible redraw range, put it in available pool
+					if( (row.top + rowHeight) <= top || row.top > bottom ) {
+						available.push( row );
+					}
+					// else, it's ok keep in mind that this pos is filled
+					else {
+						positions[row.top] = row;
+					}
 				}
-				// else, it's ok keep in mind that this pos is filled
-				else {
-					positions[row.top] = row;
-				}
-			}
 
-			// reuse missing positions with available rows
-			let 	result = [];
-			
-			// we start from the first visible (or partially visible)
-			// to the bottom of visible part
+				// reuse missing positions with available rows
+				
+				// we start from the first visible (or partially visible)
+				// to the bottom of visible part
 
-			while( top<=bottom ) {
+				while( top<=bottom ) {
 
-				// is this position occupied ?
-				let orow = positions[top];
+					// is this position occupied ?
+					let orow = positions[top];
 
-				if( !orow ) {
-					//	no, get one in available Pool
-					orow 		= available.pop( );
 					if( !orow ) {
-						// no, create it
-						orow = { row: new Row( this.columns, this.store ) };
-						// and keep it
-						rows.push( orow );
+						//	no, get one in available Pool
+						orow 		= available.pop( );
+						if( !orow ) {
+							// no, create it
+							orow = { row: new Row( {columns:this.columns, store:this.store} ) };
+							// and keep it
+							rows.push( orow );
+						}
+
+						// setup it's data
+						let idx = top/rowHeight;
+						orow.top 	= top;
+						orow.row.set( {top, visible: true, height:rowHeight, index:idx} );
 					}
 
-					// ensure visible
-					orow.row.setVisible( true );
-
-					// setup it's data
-					let idx = top/rowHeight;
-					orow.top 	= top;
-					orow.row.setData( {top:top, height:rowHeight, index:idx} );
+					top	+= rowHeight;
 				}
-
-				if( calcRes ) {
-					result.push( orow.row );
+				
+				// hide available rows
+				let na = available.length;
+				for( i=0; i<na; i++ ) {
+					let row = available[i];
+					row.top = -1000;
+					row.row.set( {visible:false} );
 				}
+			}
 
-				top	+= rowHeight;
+			// avoid scrollbar hz/vt conflict
+			this._viewport._dom.style.overflow = 'auto';
+		}
+
+		onRenderRows( ) {
+			let result = [],
+				rows = this._rowPool,
+				n = rows.length,
+				r;
+
+			for( r=0; r<n; r++ ) {
+				result.push( rows[r].row );
 			}
 			
-			// hide available rows
-			let na = available.length;
-			for( i=0; i<na; i++ ) {
-				let row = available[i];
-				row.top = -1000;
-				row.row.setVisible( false );
-			}
-
 			return result;
 		}
 
 		render( ) {
-
-			this.rowPool = [];
-			this.hasFlex 		= false;
-			this.totalWidth  	= this._calcWidth( );
-			this.flexWidth 		= 0;
-
+			
+			this._hasFlex = false;
+			this._totalWidth = this._calcWidth( );
+			this._flexWidth	= 0;
+						
 			return {
 				style: {
 					overflow: 'hidden',
 				},
 				layout: 'vertical',
 				items: [
-					this.header,
-					this.viewport
+					this._header,
+					this._viewport
 				]
 			};
 		}		
 	}
-
 
 	$$.Grid = Grid;
 

@@ -1,20 +1,21 @@
 (function($$) {
 	
 	/**
-	 * 
+	 * WindowTitle class
 	 */
 
 	class WindowTitle extends Component
 	{
-		constructor( {title,closable} ) {
-			super( );
+		/**
+		 * @constructor
+		 * @param  {String} cfg.title - title text
+		 * @param  {Boolean} cfg.closable - is set a close box is added
+		 */
+		
+		constructor( cfg ) {
+			super( cfg );
 
-			this.setDataModel({
-				title: title,
-				closable: closable
-			});
-
-			this.icon = new Icon( {glyph:'fa@undo'} );
+			this._icon = new Icon( {icon:'fa@undo'} );
 			this._clsName = 'x-header';
 		}	
 
@@ -23,45 +24,63 @@
 				items: [
 					{ 
 						cls: 'x-text',
-						content: this._data.title 
+						content: this.title 
 					},
-					this.icon
+					this._icon
 				]
 			}
 		}
 	}
 
 	/**
-	 * 
+	 * 	WindowBase class
+	 * 	base class for all popup windows
 	 */
 	
 	class WindowBase extends Component
 	{
-		constructor( ...a ) {
-			super( ...a );
+		/**
+		 * @constructor
+		 * @param  {Boolean} cfg.clickDismiss - if true a click outside of the window close it
+		 * @param {Boolean} cfg.modal - if true the window is modal
+		 * @param {String} cfg.cls - class to add to the window
+		 */
+		constructor( cfg ) {
+			super( cfg, {cls:''} );
 
-			this.clickDismiss = this._config.clickDismiss;
 			this._checkClick = this._checkClick.bind(this);
+			this._showInfo = undefined;
+			this._init = false;
+			this._root = null;
 		}		
 
+		/**
+		 * show the window
+		 * @param  {Object} showInfo - depending of the subclasses
+		 */
 		show( showInfo ) {
-			if( !this.init ) {
-				this._show_info = showInfo,
+			if( !this._init ) {
+				this._show_info = showInfo;
 				this._createRootNode( );			
-				this.init = true;
+				this._init = true;
 			}
 		}
 
+		/**
+		 * close the window
+		 */
+		
 		close( ) {
-			if( this.root && this.init ) {
+			
+			if( this._root && this._init ) {
 
 				if( this.clickDismiss ) {
 					window.removeEventListener( 'click', this._checkClick );
 				}
 
-				React.unmountComponentAtNode(this.root);
-			    document.body.removeChild(this.root);
-			    this.init = false;
+				React.unmountComponentAtNode(this._root);
+			    document.body.removeChild(this._root);
+			    this._init = false;
 			}
 		}
 		
@@ -72,7 +91,7 @@
 		
 		_createRootNode( ) {
 			// insert a div into which we will render
-			this.root = document.createElement( 'div' );
+			this._root = document.createElement( 'div' );
 
 			if( this.clickDismiss ) {
 				let me = this;
@@ -83,16 +102,16 @@
 
 			if( this.modal ) {
 				// put it inside body 
-				this.root.className = 'x-modal-mask x-center';
+				this._root.className = 'x-modal-mask x-center';
 			}
 		
-			document.body.appendChild( this.root );
+			document.body.appendChild( this._root );
 
-			React.unstable_renderSubtreeIntoContainer( this._, React.createElement(this._), this.root );
+			React.renderSubtreeIntoContainer( this._, React.createElement(this._), this._root );
 		}
 
 		_checkClick( e ) {
-			let dom = React.findDOMNode(this._);
+			let dom = this._getDOM( );
 
 			if( !isDescendantElement(e.target,dom) ) {
 				this.onClickAway( );
@@ -105,51 +124,50 @@
 	}
 
 	/**
-	 * 
+	 * 	Window class
+	 * 	basic Window with a title
 	 */
 	
 	class Window extends WindowBase {
 
-		constructor( ...a ) {
-			super( ...a );
+		/**
+		 * @constructor
+		 * @param  {String} cfg.title - title of the window, if title is specified, the window show a caption
+		 * @param {Object|Component} cfg.content - content of the window
+		 */
+		
+		constructor( cfg ) {
+			super( cfg );
 
-			let {title,frame,sizable,width,height,modal=true,closable=true,content} = this._config;
-
-			this.root = null;
-			this.init = false;
-			this.modal = modal;
-			this.content = content;
-
-			this.setDataModel({
-				width: width,
-				height: height,
-			})
-
-			if( title ) {
-				this.header = new WindowTitle( {title,closable} );
+			if( this.title ) {
+				this._header = new WindowTitle( {title:this.title,closable:this.closable} );
 			}
 		}
 
 		render( ) {
-			const {width,height,frame,sizeable} = this._data;
+			
 	    	return {
-	    		cls: 'x-box x-nosel',
+	    		cls: 'x-box x-nosel ' + this.cls,
 	    		style: {
 	    			position: 'fixed',
-	    			width: width,
-	    			height: height,
+	    			width: this.width,
+	    			height: this.height,
 	    			minWidth: 100,
 	    			minHeight: 100,
 	    		},
 
 	    		items: [
-	    			this.header,
+	    			this._header,
 	    			this.content
 	    		]
 		  	}
 	    }
 	}
 
+	/**
+	 * MenuSeparator
+	 * Basic menu separator
+	 */
 
 	class MenuSeparator extends Component
 	{
@@ -160,51 +178,54 @@
 	}
 
 	/**
-	 * 
+	 * MenuItem
+	 * item of a menu
 	 */
 
 	class MenuItem extends Component
 	{
-		constructor( ...a ) {
-			super( ...a );
+		/**
+		 * @constructor
+		 * @param  {String} cfg.title - title of the element
+		 * @param {String} cfg.icon - icon of the element
+		 * @param {Menu} cfg.menu - sub menu if this item is a popup menu
+		 */
+		constructor( cfg ) {
+			super( cfg );
 
-			this.setDataModel({
-				title: this._config.title,
-				icon: this._config.icon,
-				menu: this._config.menu,
-			});
+			this.bindAll( );
+			this.addEvents('click');
 
-			this.addEvents(['click']);
-			this.icon = new Icon({style:{width:16}});
-			this.popup = new Icon({glyph:'fa@angle-right',style:{width:16}});
+			this._icon = new Icon({width:16});
+			this._popup = new Icon({icon:'fa@angle-right',width:16});
 		}
 
 		render( ) {
 
-			let isPopup = this._data.menu ? true : false;
+			let isPopup = this.menu ? true : false;
 
-			this.icon._setIcon( this._data.icon );
+			this._icon.icon = this.icon;
 
 			return {
 				layout: 'horizontal',
-				onclick: this.onClick.bind(this),
+				onclick: this.onClick,
 				style: {
 					alignItems: 'center'
 				},
 				items: [
-					this.icon,
+					this._icon,
 					{
 						cls: 'x-text',
-						content: this._data.title,
+						content: this.title,
 						flex: 1,
 					},
-					isPopup ? this.popup : {width:16},
+					isPopup ? this._popup : {width:16},
 				]
 			}
 		}
 
 		onClick( ) {
-			if( this._data.menu ) {
+			if( this.menu ) {
 				this._showSubMenu( );
 			}
 			else {
@@ -217,22 +238,24 @@
 		}
 
 		_showSubMenu( ) {
-			this._data.menu.show( {ref:this,align:'trtl'} );
+			this.menu.show( {ref:this,align:'trtl'} );
 		}
 	}
 
 	/**
-	 * 
+	 * 	Menu class
+	 * 	Popup menu
 	 */
 
 	class Menu extends WindowBase {
 
-		constructor( ...a ) {
-			super( ...a );
-
-			this.setDataModel({
-				items: this._config.items
-			});
+		/**
+		 * @constructor
+		 * @param  {[MenuItem|MenuSeparator]} cfg.items - items
+		 */
+		
+		constructor( cfg ) {
+			super( cfg );
 
 			this.clickDismiss = true;
 			//setTimeout( this.close.bind(this), 30000 );
@@ -243,7 +266,7 @@
 				this._positionMenu( this._show_info );
 			}
 			else {
-				let dom = React.findDOMNode(this._);
+				let dom = this._getDOM();
 				dom.style.opacity = 1.0;
 			}
 		}
@@ -304,8 +327,8 @@
 
 		_positionMenu( info ) {
 
-			let tar_dom = React.findDOMNode(this._),
-				ref_dom = React.findDOMNode(info.ref._);
+			let tar_dom = this._getDOM(),
+				ref_dom = info.ref._getDOM();
 				
 			let {x,y} = this._calcPosition( tar_dom, ref_dom, info.align );
 
@@ -324,54 +347,26 @@
 					opacity: 0,
 					zIndex: 100,
 				},
-				items: this._data.items
+				items: this.items
 			}
 		}
 	}
 
-
-
-
-
-
-
-
-
-
-
-
 	/**
-	 * Alert, Warning, Info dialogs
+	 * MessageBox Dialog
+	 * @param {String} cfg.cls - base class of the messagebox
+	 * @param  {String} cfg.icon - icon to show
+	 * @param {String} cfg.title - title of the message
+	 * @param {String} cfg.text - text of the message (the text is not interpreted a html, cf. html parameter)
+	 * @param {String} cfg.html - text of the message the text is pure html and you have to take care of the content (html/javascript attacks)
+	 * @param {Boolean} cfg.clickDismiss - if true a click outside of the window close it
 	 */
+	
+	function MessageBox( cfg ) {
 
-	function alert( cfg ) {
-		cfg.cls = 'x-alert';
-		if( !cfg.icon ) {
-			cfg.icon = 'fa@exclamation-triangle';
-		}
+		const {title,text,icon,autoClose,clickDismiss,cls,html} = cfg;
 
-		_display_box( cfg );
-	}
-
-	function warning( cfg ) {
-		cfg.cls = 'x-warning';
-
-
-		if( !cfg.icon ) {
-			cfg.icon = 'fa@exclamation-circle';
-		}
-		
-		_display_box( cfg );
-	}
-
-	function info( cfg ) {
-		cfg.cls = 'x-info';
-		_display_box( cfg );
-	}
-
-	function _display_box( {title,text,icon,autoClose,clickDismiss,cls,html} ) {
-
-		let 	ic = new Icon({glyph:icon,size:48});
+		let 	ic = new Icon({icon:icon,size:48});
 		let 	btn = new Button( {title: 'OK', width: 80, deffocus: true} );
 
 		let 	msg;
@@ -391,7 +386,6 @@
 
 		let content = {
 			layout: 'vertical',
-			cls: cls,
 			style: {
 				paddingLeft: 32,
 				paddingRight: 32,
@@ -443,9 +437,8 @@
 			]
 		};
 
-		btn.on( 'click', () => {t.close();} )
+		btn.on( 'click', () => {wnd.close();} )
 		
-
 		if( autoClose ) {
 			let tme = autoClose;
 			let xx = setInterval( ()=> {
@@ -454,21 +447,19 @@
 				
 				if( tme<=0 ) {
 					clearInterval( xx );
-					t.close( );
+					wnd.close( );
 				}
 			}, 1000 );
 		}
 
-		var t = new Window({content:content,clickDismiss:clickDismiss});
-		t.show( );
+		var wnd = new Window({content:content,clickDismiss:clickDismiss,modal:true,cls:cls});
+		wnd.show( );
 	}
 
 	$$.Menu = Menu;
 	$$.MenuItem = MenuItem;
 	$$.MenuSeparator = MenuSeparator;
 	$$.Window = Window;
-	$$.Exact.alert = alert;
-	$$.Exact.warning = warning;
-	$$.Exact.info = info;
+	$$.Exact.MessageBox = MessageBox;
 
 })( window || this );
