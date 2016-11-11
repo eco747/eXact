@@ -121,13 +121,6 @@ window.onload = function( ) {
 						{ title: 'Ouvrir', icon: 'fa@external-link' },
 						{ title: 'Fermer', icon: 'fa@times-circle' },
 						{ title: 'Propriétés', icon: 'fa@cogs' },
-						{ title: 'Plan comptable', icon: 'fa@list' },
-					]},
-					{ title: 'Saisies', items: [
-						{ title: 'Saisie écriture' },
-						{ title: 'Liste des écritures' },
-						{ title: 'Consultation des comptes' },
-						{ title: 'Lettrage' },
 					]},
 				]
 			});
