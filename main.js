@@ -280,8 +280,6 @@ window.onload = function( ) {
 
 	let app = new App();
 	app.renderTo(document.body);
-
-	window.addEventListener( 'resize', app._refresh.bind(app) );
 }
 
 
