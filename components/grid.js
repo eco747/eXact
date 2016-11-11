@@ -99,7 +99,7 @@
 		constructor( cfg ) {
 			super( cfg, {scrollLeft:0, scrollTop:0} );
 
-			this.addEvents( 'headerclick' );
+			this.addEvents( 'headerclick', 'headersizechanged' );
 		}
 
 		reset( ) {
@@ -116,7 +116,7 @@
 			for( let c=0; c<len; c++ ) {
 
 				let col = cols[c],
-					style = { };
+					style = { position: 'relative' };
 
 				if( col.width!==0 && col.width!==undefined) {
 					style.width = col.width;
@@ -151,6 +151,10 @@
 					itm.onclick = this.onItemClick.bind( this, col );
 				}
 
+				if( col.sizable ) {
+					itm.items.push( new Sizer({side:'right',handler:this.onColSize.bind(this,col)}) );
+				}
+
 				items.push( itm );
 			}
 
@@ -160,11 +164,16 @@
 				width: this.totalWidth || '100%',
 			};
 
+
 			return {
 				cls: 'x-box',
 				style: main_style,
 				items: items
 			}
+		}
+
+		onColSize( col, size ) {
+			this.fireEvent( 'headersizechanged', col, size );
 		}
 
 		onItemClick( col ) {
@@ -299,7 +308,19 @@
 			this._flexWidth = 0;
 
 			this._header.on( 'headerclick', this.onSortCol );
+			this._header.on( 'headersizechanged', this.onColSized );
+
 			this.store.on('change', this.onStoreChanged );
+		}
+
+		/**
+		 * called when the user resize a column on sizable header
+		 */
+		
+		onColSized( col, size ) {
+			col.width = size;
+			col.flex = 0;
+			this._refresh( );
 		}
 
 		/**

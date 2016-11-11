@@ -83,6 +83,7 @@ class 	Sizer extends Component {
 
 	/**
 	 * constructor
+	 *  @param {Object} target - target element to resize. if not given, use parent dom node
 	 * 	@param {String} cfg.side - sizer side one of 'left','top','right','bottom'
 	 * 	@param {Function} cfg.handler - function to call on sizing fn(side,size)
 	 * 	
@@ -135,10 +136,20 @@ class 	Sizer extends Component {
 		let me = this,
 			side = me.side,
 			parent = this.target,
-			dom = React.findDOMNode( parent._ ),
-			rc = dom.getBoundingClientRect( ),
-			dx, dy;
+			dom, dx, dy;
 
+		// if a parent target is given, use it
+		if( parent ) {
+			dom = parent._getDOM( );
+		}
+		// else use parent dom node
+		else {
+			dom = this._getDOM( );
+			dom = dom.parentNode;
+		}
+
+		let rc = dom.getBoundingClientRect( );
+			
 		me.fireEvent( 'sizestart' );
 		me._sizing = true;
 		me._refresh( );
@@ -156,7 +167,7 @@ class 	Sizer extends Component {
 			if( size!==undefined ) {
 				me.fireEvent( 'sizechanged', me.side, e.x-dx-rc.left );
 				if( me.handler ) {
-					me.handler( me.side, size )
+					me.handler( size, me.side )
 				}
 			}
 
@@ -240,7 +251,7 @@ class 	Panel extends Component
 		}
 	}
 
-	onSizeChanged( side, size ) {
+	onSizeChanged( size, side ) {
 		//review: really dirty
 		if( side=='right' ) {
 			this.width = size;

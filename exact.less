@@ -98,6 +98,20 @@ body {
 	}
 }
 
+.x-sizer {
+	&.right {
+		border-right: 1px solid #eeeeee;
+
+		&:hover {
+			background-color: #eeeeee;
+		}
+
+		&.sizing {
+			background-color: #00838f;
+		}
+	}
+}
+
 .x-grid {
 	//font-size: 12px;
 	
@@ -120,6 +134,7 @@ body {
 			padding: 12px 8px;
 			cursor: default;
 			white-space: nowrap;
+			box-sizing: border-box;
 
 			&.sortable {
 				cursor: pointer;				
@@ -139,6 +154,15 @@ body {
 			.x-sort.desc:after {
 				content: '\f107';
 			}
+
+			.x-sizer {
+				border-right: none;
+				background-color: transparent;
+			}
+
+			&:hover .x-sizer {
+				border-right: 1px solid #eeeeee;
+			}
 		}
 	}
 	
@@ -150,10 +174,6 @@ body {
 
 		&.x-odd {
 			background-color: #fafafa;
-		}
-
-		&:hover {
-			background-color: #e0f7fa;	
 		}
 
 		.x-cell {
@@ -353,20 +373,6 @@ body {
 		}
 
 		
-	}
-}
-
-.x-sizer {
-	&.right {
-		border-right: 1px solid #eeeeee;
-
-		&:hover {
-			background-color: #eeeeee;
-		}
-
-		&.sizing {
-			background-color: #00838f;
-		}
 	}
 }
 

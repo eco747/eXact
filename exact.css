@@ -77,6 +77,15 @@ body {
 .x-bottom-navigation .x-bottom-navigation-item .x-text {
   padding-top: 2px;
 }
+.x-sizer.right {
+  border-right: 1px solid #eeeeee;
+}
+.x-sizer.right:hover {
+  background-color: #eeeeee;
+}
+.x-sizer.right.sizing {
+  background-color: #00838f;
+}
 .x-grid .x-cell {
   box-sizing: border-box;
   cursor: default;
@@ -93,6 +102,7 @@ body {
   padding: 12px 8px;
   cursor: default;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 .x-grid .x-header .x-cell.sortable {
   cursor: pointer;
@@ -109,6 +119,13 @@ body {
 .x-grid .x-header .x-cell .x-sort.desc:after {
   content: '\f107';
 }
+.x-grid .x-header .x-cell .x-sizer {
+  border-right: none;
+  background-color: transparent;
+}
+.x-grid .x-header .x-cell:hover .x-sizer {
+  border-right: 1px solid #eeeeee;
+}
 .x-grid .x-row {
   display: flex;
   flex-direction: row;
@@ -117,9 +134,6 @@ body {
 }
 .x-grid .x-row.x-odd {
   background-color: #fafafa;
-}
-.x-grid .x-row:hover {
-  background-color: #e0f7fa;
 }
 .x-grid .x-row .x-cell {
   padding: 4px 8px;
@@ -269,15 +283,6 @@ body {
 .x-menu .x-menu-item .x-text {
   margin-left: 8px;
   white-space: nowrap;
-}
-.x-sizer.right {
-  border-right: 1px solid #eeeeee;
-}
-.x-sizer.right:hover {
-  background-color: #eeeeee;
-}
-.x-sizer.right.sizing {
-  background-color: #00838f;
 }
 .z-depth-1 {
   box-shadow: rgba(0, 0, 0, 0.117647) 0px 1px 6px, rgba(0, 0, 0, 0.117647) 0px 1px 4px;

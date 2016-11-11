@@ -251,12 +251,12 @@ window.onload = function( ) {
 				store: store,
 				flex: 1,
 				columns: [
-					{ title: 'Id', 		   sortable: true, index: 'id', width: 50 },
-					{ title: 'First name', index: 'first_name', width: 400 },
-					{ title: 'Last name',  index: 'last_name', flex: 1, minWidth: 400 },
-					{ title: 'Address',    sortable: true, index: 'address', flex: 1 },
-					{ title: 'Number', 	   sortable: true, index: 'num', flex: 1 },
-					{ title: 'Renderer',   renderer: renderCell, width: 80 },
+					{ title: 'Id', 		   sortable: true, index: 'id', sizable: true, width: 50 },
+					{ title: 'First name', index: 'first_name', sizable: true, width: 400 },
+					{ title: 'Last name',  index: 'last_name', flex: 1, sizable: true, minWidth: 400 },
+					{ title: 'Address',    sortable: true, index: 'address', sizable: true, flex: 1 },
+					{ title: 'Number', 	   sortable: true, index: 'num', sizable: true, flex: 1 },
+					{ title: 'Renderer',   renderer: renderCell, sizable: true, width: 80 },
 				]
 			});
 		}
