@@ -25,21 +25,31 @@ class Icon extends Component
 	}
 
 	render( ) {
-		let { icon, size } = this,	
-			cls;
+		let { icon, size } = this;
+		return Icon.buildRendering( icon, size );
+	}
 
+	onClick( ) {
+		this.fireEvent('click');
+	}
+
+	static extractIconClass( name ) {
+
+		if( name.match(Icon.GlyphRE) ) {
+			let x = Icon.GlyphRE.exec( name );
+			return x[1] + ' fa-' + x[2];
+		}
+		else {
+			return name;
+		}
+	}
+
+	static buildRendering( icon, size ) {
 		if( !icon ) {
 			return null;
 		}
 
-		if( icon.match(Icon.GlyphRE) ) {
-			let x = Icon.GlyphRE.exec( icon );
-			cls = x[1] + ' fa-' + x[2];
-		}
-		else {
-			cls = icon;
-		}
-
+		let cls = 'x-icon ' + Icon.extractIconClass( icon );
 		let style = {textAlign: 'center'};
 				
 		if( size ) {
@@ -52,15 +62,13 @@ class Icon extends Component
 			tag: 'i',
 			cls: cls,
 			style: style,
-		}
-	}
-
-	onClick( ) {
-		this.fireEvent('click');
+		}	
 	}
 }
 
 Icon.GlyphRE = /(\w+)\@([\w_-]+)/;
+
+
 
 
 
@@ -338,7 +346,7 @@ class 	TextField extends Component
 				cls: 'x-label' + (vert ? ' x-vert' : ''),
 				style: {textAlign: labelAlign},
 				width: labelWidth,
-				flex: labelWidth || 1,
+				flex: (labelWidth ? undefined : 1),
 				content: (this.label + ':')
 			});
 		}
@@ -634,8 +642,118 @@ class Application extends Component
 {
 	constructor( cfg ) {
 		super( cfg );
+		
 		Exact.application = this;
+		window.addEventListener( 'resize', this._refresh.bind(this) );
 	}
 }
+
+/**
+ * 
+ */
+
+class TreeList extends Component
+{
+	constructor( cfg ) {
+		super( cfg );
+	}
+
+	_buildItems( items ) {
+		let result = [];
+
+		for( let i in items ) {
+			
+			if( !items.hasOwnProperty(i) ) {
+				continue;
+			}
+
+			let item = items[i];
+
+			let cls = 'x-tree-item';
+
+			if( item.items ) {
+				cls += ' owner';
+			}
+
+			if( item.open ) {
+				cls += ' open';	
+			}
+
+			let children = [];
+			if( item.items && item.open ) {
+				children = this._buildItems( item.items );
+			}
+
+			let icon = item.icon;
+			if( !icon ) {
+				/*if( item.items ) {
+					if( item.open ) {
+						icon = 'fa@folder-open-o';
+					}
+					else {
+						icon = 'fa@folder-o';	
+					}
+				}*/
+			}
+
+			result.push({
+				cls: cls,
+				items: [
+					{
+						cls: 'x-header',
+						layout: 'horizontal',
+						items: [
+							Icon.buildRendering( item.items ? (item.open ? 'fa@chevron-down' : 'fa@chevron-right') : '', 12 ),
+							Icon.buildRendering( icon, 12 ),
+							{
+								cls: 'x-text',
+								content: item.title
+							}, 
+						]
+					},
+					{
+						cls: 'content',
+						items: children
+					}
+				]
+			});
+		}
+
+		return result;
+	}
+
+	render( ) {
+		let items = this._buildItems( this.items );
+		return {
+			items: items		
+		};
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

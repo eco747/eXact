@@ -113,6 +113,26 @@ window.onload = function( ) {
 			edit.on('change', doFilter );
 
 
+			// 	navigation bar
+			let navbar = new TreeList( {
+				items: [
+					{ title: 'Dossier', open: 'true', items: [
+						{ title: 'Nouveau', icon: 'fa@file-text-o' },
+						{ title: 'Ouvrir', icon: 'fa@external-link' },
+						{ title: 'Fermer', icon: 'fa@times-circle' },
+						{ title: 'Propriétés', icon: 'fa@cogs' },
+						{ title: 'Plan comptable', icon: 'fa@list' },
+					]},
+					{ title: 'Saisies', items: [
+						{ title: 'Saisie écriture' },
+						{ title: 'Liste des écritures' },
+						{ title: 'Consultation des comptes' },
+						{ title: 'Lettrage' },
+					]},
+				]
+			});
+
+
 			//	simple chart demo for canvas
 			function draw( canvas ) {
 
@@ -193,6 +213,7 @@ window.onload = function( ) {
 						layout: 'horizontal',
 						items: new CheckBox({label:'Auto Refresh'}),	// changed icon just to play
 					},
+					navbar,
 					{
 						layout: 'vertical',
 						flex: 1,

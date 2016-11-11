@@ -339,8 +339,8 @@ class 	DataFilter
 		if( vtype==0 ) {
 			rc = this.cmp( v1, this.value );
 		}
-        else if( this.type==1 ) {
-        	rc =  this.fn( v1 );
+        else if( vtype==1 ) {
+        	rc =  this.value( v1 );
         }
         else {
         	if( !isString(v1) ) {
@@ -437,7 +437,7 @@ class 	DataStore extends Observable
 
 	clearFilters( ) {
 
-		this.filters_fields = null;
+		this.filter_fields = null;
 		this._recalcIndex( );
 	}
 	
@@ -617,9 +617,6 @@ class 	DataStore extends Observable
 		for( let f=0; f<fields.length; f++ ) {
 
 			let field = fields[f];
-			if( isNaN(field.value) || field.value===undefined ) {
-				continue;
-			}
 
 			let model = this.model._fields[field.field];
 			if( !model ) {
@@ -627,7 +624,14 @@ class 	DataStore extends Observable
 				continue;
 			}
 
-			field.value = coerce( field.value, model._type );
+
+			if( !isFunction(field.value) ) {
+				if( isNaN(field.value) || field.value===undefined ) {
+					continue;
+				}
+			
+				field.value = coerce( field.value, model._type );
+			}
 
 			let filter = new DataFilter( this, field );
 			filters.push( filter );
