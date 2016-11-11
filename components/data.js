@@ -107,6 +107,14 @@ class 	DataModel
 		this._set( name, value, this._raw );
 	}
 
+	/**
+	 * return the internal record id depending on the idProperty gicen in the constructor
+	 */
+	
+	_getId( buffer ) {
+		return this._get( this._idProperty, buffer );
+	}
+
 	convert( rawData ) {
 
 		let record = [],

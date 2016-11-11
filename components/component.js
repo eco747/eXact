@@ -44,10 +44,14 @@
 				debugger;
 			}
 
-			this.observers.push( o );
+			let idx = this.observers.indexOf( o );
+			if( idx<0 ) {
+				this.observers.push( o );
+			}
 		}
 
 		remove( o ) {
+
 			let idx = this.observers.indexOf( o );
 			if( idx<0 ) {
 				console.log( 'Unknown observer:', o );
@@ -59,7 +63,7 @@
 
 		fire( ...e ) {
 
-			let obs = this.observers.slice( 0 ),
+			let obs = this.observers,
 				n = obs.length;
 
 			for( let i=0; i<n; i++ ) {

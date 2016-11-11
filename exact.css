@@ -135,6 +135,10 @@ body {
 .x-grid .x-row.x-odd {
   background-color: #fafafa;
 }
+.x-grid .x-row.x-sel {
+  background-color: #006064;
+  color: white;
+}
 .x-grid .x-row .x-cell {
   padding: 4px 8px;
   display: flex;

@@ -17,10 +17,14 @@
 		 * @params {DataStore} cfg.store - data store to work on
 		 * @param {Boolean} cfg.visible - visible or not
 		 * @param {Object} cfg.columns - columns description
+		 * @param {Boolean} cfg.selected - if true , mark the row as selected
 		 */
 		
 		constructor( cfg ) {
-			super( cfg, {top:0,height:0,index:0,visible:true} );
+			super( cfg, {top:0,height:0,index:0,visible:true,selected:false} );
+
+			this.bindAll( );
+			this.addEvents( 'click', 'dblclick' );
 		}
 
 		render( ) {
@@ -30,7 +34,8 @@
 				rec = this.store.getAt( index ),
 				cols = this.columns,
 				len = cols.length,
-				model = this.store.model;
+				model = this.store.model,
+				selected = this.selected;
 
 			if( rec && visible ) {
 				for( let c=0; c<len; c++ ) {
@@ -74,11 +79,21 @@
 			};
 
 			return {
-				cls: 'x-box ' + ((index%2)==0 ? 'x-odd' : ''),
+				cls: 'x-box' + ((index%2)==0 ? ' x-odd' : '') + (selected ? ' x-sel' : ''),
 				hidden: !visible,
 				style: style,
-				items: cells
+				items: cells,
+				onclick: this.onClick,
+				ondblclick: this.onDblClick,
 			}
+		}
+
+		onClick( e ) {
+			this.fireEvent( 'click', this, e );
+		}
+
+		onDblClick( e ) {
+			this.fireEvent( 'dblclick', this, e );	
 		}
 	}
 
@@ -262,6 +277,88 @@
 		}
 	}
 
+	/**
+	 * Basic selection class
+	 * by default, we add element indexes, so the selection convert the given id to real record id
+	 *
+	 * @param {DataStore} store store to work on
+	 */
+	
+	class 	Selection {
+
+		constructor( cfg ) {
+			apply( this, cfg );
+
+			this.items = new Set( );
+		}
+
+		/**
+		 * add an id in the selection
+		 * @param  {Any} id the id to add
+		 */
+		
+		add( id ) {
+			id = this._getRecordId(id);
+			this.items.add( id );
+		}
+
+		/**
+		 * remove an id from the selection
+		 * @param  {Any} id the id to remove
+		 */
+		
+		remove( id ) {
+			id = this._getRecordId(id);
+			this.items.delete( id );
+		}
+
+		/**
+		 * clear the whole selection
+		 */
+		
+		clear( ) {
+			this.items.clear( );
+		}
+
+		/**
+		 * toggle an id in the selection: if present: remove, if absent: set
+		 * @param  {Any} id the id to toggle
+		 * @return {Boolean} the new selection state of the item
+		 */
+		
+		toggle( id ) {
+			id = this._getRecordId(id);
+
+			if( this.items.has(id) ) {
+				this.items.delete( id );
+				return false;
+			}
+			else {
+				this.items.add( id );
+				return true;
+			}
+		}
+
+		/**
+		 * check if the selection contains this id
+		 * @param  {Any} id the id to check
+		 */
+		
+		contains( id ) {
+			id = this._getRecordId(id);
+			return this.items.has( id );
+		}
+
+		/**
+		 * return the real record id from the given index
+		 */
+		
+		_getRecordId( id ) {
+			let rec = this.store.getAt( id );
+			return this.store.model._getId( rec );
+		}
+	}
+
 
 	/**
 	 * column definition:
@@ -306,6 +403,7 @@
 			this._lastScrollTop = -1;
 			this._hasFlex = false;
 			this._flexWidth = 0;
+			this._selection = new Selection( {store:this.store} );
 
 			this._header.on( 'headerclick', this.onSortCol );
 			this._header.on( 'headersizechanged', this.onColSized );
@@ -553,9 +651,12 @@
 						}
 
 						// setup it's data
-						let idx = top/rowHeight;
+						let idx = top/rowHeight,
+							sel = this._selection.contains(idx);
+
 						orow.top 	= top;
-						orow.row.set( {top, visible: true, height:rowHeight, index:idx} );
+						orow.row.set( {top, visible: true, height:rowHeight, index:idx, selected: sel } );
+						orow.row.on( 'click', this.onRowClick );
 					}
 
 					top	+= rowHeight;
@@ -574,6 +675,41 @@
 			this._viewport._dom.style.overflow = 'auto';
 		}
 
+		onRowClick( row, ev ) {
+
+			let shift = ev.shiftKey,
+				ctrl = ev.ctrlKey,
+				refresh = 1;
+			
+			if( shift && ctrl ) {
+			}
+			else if( ctrl ) {
+				this._selection.toggle( row.index );
+			}
+			else if( shift ) {
+
+			}
+			else {
+				this._selection.clear( );
+				this._selection.add( row.index );
+			}
+
+			this._refreshSel( );
+		}
+
+		_refreshSel( ) {
+
+			let rows = this._rowPool,
+				sels = this._selection;
+			
+			for( let r in rows ) {
+				let row = rows[r].row,
+					sel = sels.contains( row.index );
+
+				row.set( { selected: sel } );
+			}
+		}
+		
 		onRenderRows( ) {
 			let result = [],
 				rows = this._rowPool,
