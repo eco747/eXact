@@ -116,11 +116,11 @@ window.onload = function( ) {
 			// 	navigation bar
 			let navbar = new TreeList( {
 				items: [
-					{ title: 'Dossier', open: 'true', items: [
-						{ title: 'Nouveau', icon: 'fa@file-text-o' },
-						{ title: 'Ouvrir', icon: 'fa@external-link' },
-						{ title: 'Fermer', icon: 'fa@times-circle' },
-						{ title: 'Propriétés', icon: 'fa@cogs' },
+					{ title: 'Folder', open: 'true', items: [
+						{ title: 'New', icon: 'fa@file-text-o' },
+						{ title: 'Open', icon: 'fa@external-link' },
+						{ title: 'Close', icon: 'fa@times-circle' },
+						{ title: 'Properties', icon: 'fa@cogs' },
 					]},
 				]
 			});
