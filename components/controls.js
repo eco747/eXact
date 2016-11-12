@@ -22,7 +22,7 @@ class Icon extends Component
 		this.bindAll( );
 		this.addEvents( 'click' );
 
-		this.bindEvents({
+		this.bindDOMEvents({
 			onclick: this.onClick
 		});
 	}
@@ -291,7 +291,7 @@ class 	Button extends Component
 		this.bindAll( );
 		this.addEvents( 'click' );
 
-		this.bindEvents({
+		this.bindDOMEvents({
 			onclick: this.onClick,
 			onkeypress: this.onKey,
 		});
@@ -351,6 +351,10 @@ class 	TextField extends Component
 
 		this.bindAll( );
 		this.addEvents( 'change','blur','focus' );
+
+		if( this.tooltip ) {
+			this._tooltip = new Tooltip( {target:this, text: this.tooltip } );
+		}
 	}
 
 	render( ) {
@@ -450,7 +454,7 @@ class 	CheckBox extends Component
 		this.bindAll( );
 		this.addEvents( 'changed','blur','focus' );
 
-		this.bindEvents({
+		this.bindDOMEvents({
 			onchange: this.onChange
 		});
 
@@ -601,7 +605,7 @@ class BottomNavigationItem extends Component
 		this.bindAll( );
 		this.addEvents( 'click' );
 
-		this.bindEvents({
+		this.bindDOMEvents({
 			onmouseenter: this.onMouseEnter,
 			onmouseleave: this.onMouseLeave,
 			onclick: this.onClick
@@ -773,30 +777,63 @@ class TreeList extends Component
 	}
 }
 
+// *********************************************************************************************************
 
 
+class Tooltip extends WindowBase
+{
+	constructor( cfg ) {
+		super( cfg );
 
+		assert( cfg.target, 'You must give a target to tooltips' );
 
+		this.target.bindDOMEvents({
+			onmouseenter: this._showTooltip.bind(this),
+			onmouseleave: this._hideTooltip.bind(this)
+		});
+	}
 
+	afterMount( ) {
+		let tar_dom = this._getDOM(),
+			ref_dom = this.target._getDOM();
+			
+		let {x,y} = positionElementInScreen( tar_dom, ref_dom, 'bltl' );
 
+		tar_dom.style.left = x;
+		tar_dom.style.top = y;
+	}
 
+	_showTooltip( ) {
 
+		let me = this;
 
+		if( this.showTimer ) {
+			clearTimeout( this.showTimer );
+		}
 
+		function show( ) {
+			me.show( );
+		}
 
+		this.showTimer = setTimeout( show, 700 );
+	}
 
+	_hideTooltip( ) {
+		this.close( );
+	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+	render( ) {
+		
+		let msg = {
+			__direct: {
+				__html: this.text
+			}
+		};
+		
+		return {
+			cls: 'z-depth-1',
+			items: msg
+		}
+	}
+}
 

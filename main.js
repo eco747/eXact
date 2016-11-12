@@ -265,6 +265,7 @@ window.onload = function( ) {
 				},
 				value: '',
 				textHint: 'Enter a value - the filter operator is >=',
+				tooltip: 'The filter operator is >=.<br/><b>eXact</b> allow a lot of operators:<br/>&lt;, &lt;=, =, &gt;=, &gt;',
 				//required: 'true',
 				listeners:{
 					'change': doFilter

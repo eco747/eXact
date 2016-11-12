@@ -202,9 +202,6 @@ body {
 .x-text-field input.x-vert {
   margin-top: 0;
 }
-.x-text-field.required .x-label {
-  font-weight: bold;
-}
 .x-text-field.error .x-label {
   color: #bf360c;
 }
@@ -323,4 +320,11 @@ body {
 .x-tree-list .x-tree-item .x-header:hover {
   background-color: #00BCD4;
   color: white;
+}
+.x-tooltip {
+  background-color: #E0F7FA;
+  border: 1px solid #00838F;
+  position: absolute;
+  font-size: 80%;
+  padding: 4px;
 }

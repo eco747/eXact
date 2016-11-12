@@ -248,7 +248,7 @@
 			super( cfg, {scrollLeft:0, scrollTop:0} );
 
 			this.addEvents( 'scroll' );
-			this.bindEvents({
+			this.bindDOMEvents({
 				onscroll: this.onScroll
 			});
 

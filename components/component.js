@@ -281,6 +281,8 @@
 			this._clsName = 'x-' + kebabCase(this.constructor.name);
 			this._chg_id = 1;
 			this._events = {};
+
+			this.addEvents( 'created' );
 		}
 
 		/**
@@ -342,7 +344,7 @@
 		 * 	bind( { onclick: this.onClick, onkeypress: this.onKey } );
 		 */
 		
-		bindEvents( events ) {
+		bindDOMEvents( events ) {
 			for( let m in events ) {
 				if( events.hasOwnProperty(m) && events[m] ) {
 					let fn = events[m];
@@ -707,7 +709,17 @@
 		 */
 		
 		_refresh( callback ) {
-			this._.setState( {_:this._chg_id++}, callback );
+			let me = this;
+			
+			if( !this._.isMounted ) {
+				this._.setState( {_:this._chg_id++}, function( ) {
+					callback( );
+					me.fireEvent( 'created' );
+				});
+			}
+			else {
+				this._.setState( {_:this._chg_id++}, callback );
+			}
 		}
 
 		/**

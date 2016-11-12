@@ -256,6 +256,64 @@
 	}
 
 	/**
+	 * compute the menu position (avoid getting out of the screen)
+	 * align: tlbt
+	 */
+	
+	function positionElementInScreen( tar_dom, ref_dom, align, lvl=0 ) {
+		let rc_ref = ref_dom.getBoundingClientRect( ),
+			rc_tar = tar_dom.getBoundingClientRect( );
+
+
+		let href, vref, x, y;
+			
+		if( align[0]=='t' ) {vref = rc_ref.top;}
+		else 				{vref = rc_ref.top+rc_ref.height;}
+
+		if( align[1]=='r' ) {href = rc_ref.left+rc_ref.width;}
+		else 				{href = rc_ref.left;}
+
+		if( align[2]=='t' ) {y = vref;}
+		else 				{y = vref-rc_tar.height;}
+
+		if( align[3]=='r' ) {x = href-rc_tar.width;}
+		else 				{x = href;}
+
+		let sw = document.body.clientWidth,
+			sh = document.body.clientHeight,
+			tmp;
+						
+		if( (x+rc_tar.width)>sw )  {
+			
+			if( align[1]=='r' && align[3]=='l' && lvl==0 ) {
+				align = align[0]+'l'+align[2]+'r';
+				tmp = positionElementInScreen( tar_dom, ref_dom, align, 1 );
+				x = tmp.x + 4;
+			}
+			else {
+				x = sw-rc_tar.width; 
+			}
+		}
+
+		if( x<0 ) {
+
+			if( align[1]=='l' && align[3]=='r' && lvl==0 ) {
+				align = align[0]+'r'+align[2]+'l';
+				tmp = positionElementInScreen( tar_dom, ref_dom, align, 1 );
+				x = tmp.x - 4;
+			}
+			else {
+				x = 0; 
+			}
+		}
+
+		if( (y+rc_tar.height)>sh ) { y = sh-rc_tar.height; }
+		if( y<0 ) 				  { y = 0; }
+
+		return {x,y};
+	}
+
+	/**
 	 * 	Menu class
 	 * 	Popup menu
 	 */
@@ -284,70 +342,12 @@
 			}
 		}
 
-		/**
-		 * compute the menu position (avoid getting out of the screen)
-		 */
-		
-		_calcPosition( tar_dom, ref_dom, align, lvl=0 ) {
-
-			let rc_ref = ref_dom.getBoundingClientRect( ),
-				rc_tar = tar_dom.getBoundingClientRect( );
-
-
-			let href, vref, x, y;
-				
-			if( align[0]=='t' ) {vref = rc_ref.top;}
-			else 				{vref = rc_ref.top+rc_ref.height;}
-
-			if( align[1]=='r' ) {href = rc_ref.left+rc_ref.width;}
-			else 				{href = rc_ref.left;}
-
-			if( align[2]=='t' ) {y = vref;}
-			else 				{y = vref-rc_tar.height;}
-
-			if( align[3]=='r' ) {x = href-rc_tar.width;}
-			else 				{x = href;}
-
-			let sw = document.body.clientWidth,
-				sh = document.body.clientHeight,
-				tmp;
-							
-			if( (x+rc_tar.width)>sw )  {
-				
-				if( align[1]=='r' && align[3]=='l' && lvl==0 ) {
-					align = align[0]+'l'+align[2]+'r';
-					tmp = this._calcPosition( tar_dom, ref_dom, align, 1 );
-					x = tmp.x + 4;
-				}
-				else {
-					x = sw-rc_tar.width; 
-				}
-			}
-
-			if( x<0 ) {
-
-				if( align[1]=='l' && align[3]=='r' && lvl==0 ) {
-					align = align[0]+'r'+align[2]+'l';
-					tmp = this._calcPosition( tar_dom, ref_dom, align, 1 );
-					x = tmp.x - 4;
-				}
-				else {
-					x = 0; 
-				}
-			}
-
-			if( (y+rc_tar.height)>sh ) { y = sh-rc_tar.height; }
-			if( y<0 ) 				  { y = 0; }
-
-			return {x,y};
-		}
-
 		_positionMenu( info ) {
 
 			let tar_dom = this._getDOM(),
 				ref_dom = info.ref._getDOM();
 				
-			let {x,y} = this._calcPosition( tar_dom, ref_dom, info.align );
+			let {x,y} = positionElementInScreen( tar_dom, ref_dom, info.align );
 
 			tar_dom.style.left = x;
 			tar_dom.style.top = y;
@@ -481,6 +481,8 @@
 	$$.MenuItem = MenuItem;
 	$$.MenuSeparator = MenuSeparator;
 	$$.Window = Window;
+	$$.WindowBase = WindowBase;
 	$$.Exact.MessageBox = MessageBox;
+	$$.positionElementInScreen = positionElementInScreen;
 
 })( window || this );
