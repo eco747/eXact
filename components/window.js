@@ -416,8 +416,10 @@
 					layout: 'horizontal',
 					items: [
 						{
-							layout: 'vertical',
-							layoutDir: 'center',
+							layout: {
+								type: 'vertical',
+								direction: 'center'
+							},
 							style: {
 								paddingRight: 32,
 							},
@@ -447,8 +449,10 @@
 					]
 				},
 				{
-					layout: 'horizontal',
-					layoutDir: 'end',
+					layout: {
+						type: 'horizontal',
+						direction: 'end'
+					},
 					items: btn
 				}
 			]

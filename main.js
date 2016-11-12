@@ -206,8 +206,10 @@ window.onload = function( ) {
 				items: [
 					edit,
 					{
-						layout: 'horizontal',
-						layoutDir: 'end',
+						layout: {
+							type: 'horizontal',
+							direction: 'end'
+						},
 						items: {
 							xtype: 'Button',
 							title: 'OK',

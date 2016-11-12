@@ -9,7 +9,6 @@
 		'layout': true,
 		'flex': true,
 		'hidden': true,
-		'layoutDir': true,
 		'listeners': true
 	};
 
@@ -377,10 +376,8 @@
 		 * Emit the Json object definition in the React format
 		 *
 		 * 	layout: 
-		 * 		vertical, horizontal
-		 * 		
-		 *	layoutDir:
-		 *		center, start, end, space-around, space-between
+		 * 		type: 'vertical', 'horizontal'
+		 *		direction: 'center', 'start', 'end', 'space-around', 'space-between'
 		 * 
 		 * @param  {Object} JSon definition
 		 * @return {Object} Vue object
@@ -520,7 +517,7 @@
 					layout = { type: layout };
 				}
 
-				switch( cfg.layout ) {
+				switch( layout.type ) {
 					case 'vertical': {
 						style.display = 'flex'; 
 						style.flexDirection = 'column';
@@ -534,15 +531,15 @@
 					}
 				}
 
-				if( cfg.layoutDir ) {
-					style.justifyContent = layout_dirs[cfg.layoutDir];
+				if( layout.direction ) {
+					style.justifyContent = layout_dirs[layout.direction];
 				}				
 			}
 
 			// next specific
 			if( cfg.flex ) {
 				style.flexGrow = cfg.flex;
-				style.flexBasis = 1;
+				style.flexBasis = 1;	// by default flexGrow is using width a base computation so we use flewBasis=1 to ignore width
 			}
 
 			if( cfg.hidden ) {
