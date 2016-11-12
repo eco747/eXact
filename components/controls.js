@@ -807,23 +807,25 @@ class Tooltip extends WindowBase
 
 		let me = this;
 
-		if( this.showTimer ) {
-			clearTimeout( this.showTimer );
-		}
+		this._stopShowTimer( );
 
 		function show( ) {
 			me.show( );
 		}
 
-		this.showTimer = setTimeout( show, 700 );
+		this._showTimer = setTimeout( show, 700 );
 	}
 
 	_hideTooltip( ) {
-		if( this.showTimer ) {
-			clearTimeout( this.showTimer );
-		}
-		
+		this._stopShowTimer( );
 		this.close( );
+	}
+
+	_stopShowTimer( ) {
+		if( this._showTimer ) {
+			clearTimeout( this._showTimer );
+			this._showTimer = undefined;
+		}
 	}
 
 	render( ) {
