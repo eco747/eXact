@@ -10,12 +10,12 @@
 		 * @constructor
 		 * @param  {String} cfg.title - title text
 		 * @param  {Boolean} cfg.closable - is set a close box is added
+		 * @param {Function} cfg.onclose - function to call on close
 		 */
 		
 		constructor( cfg ) {
 			super( cfg );
 
-			this._icon = new Icon( {icon:'fa@undo'} );
 			this._clsName = 'x-header';
 		}	
 
@@ -26,7 +26,13 @@
 						cls: 'x-text',
 						content: this.title 
 					},
-					this._icon
+					{
+						xtype: 'Icon',
+						icon: 'fa@times',
+						listeners: {
+							'click': this.onclose
+						}
+					}
 				]
 			}
 		}
@@ -153,7 +159,7 @@
 			super( cfg );
 
 			if( this.title ) {
-				this._header = new WindowTitle( {title:this.title,closable:this.closable} );
+				this._header = new WindowTitle( {title:this.title,closable:this.closable,onclose:this.onTitleClose.bind(this)} );
 			}
 		}
 
@@ -174,6 +180,10 @@
 	    			this.content
 	    		]
 		  	}
+	    }
+
+	    onTitleClose( ) {
+	    	this.close( );
 	    }
 	}
 

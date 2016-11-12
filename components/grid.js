@@ -409,6 +409,8 @@
 			this._header.on( 'headersizechanged', this.onColSized );
 
 			this.store.on('change', this.onStoreChanged );
+
+			this.addEvents( 'rowdblclick', 'selchanged' );
 		}
 
 		/**
@@ -657,6 +659,7 @@
 						orow.top 	= top;
 						orow.row.set( {top, visible: true, height:rowHeight, index:idx, selected: sel } );
 						orow.row.on( 'click', this.onRowClick );
+						orow.row.on( 'dblclick', this.onRowDblClick );
 					}
 
 					top	+= rowHeight;
@@ -695,6 +698,12 @@
 			}
 
 			this._refreshSel( );
+		}
+
+		onRowDblClick( row ) {
+
+			let record = this.store.getAt( row.index );
+			this.fireEvent( 'rowdblclick', record, this.store.model );
 		}
 
 		_refreshSel( ) {

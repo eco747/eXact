@@ -288,8 +288,72 @@ window.onload = function( ) {
 					{ title: 'Address',    sortable: true, index: 'address', sizable: true, flex: 1 },
 					{ title: 'Number', 	   sortable: true, index: 'num', sizable: true, flex: 1 },
 					{ title: 'Renderer',   renderer: renderCell, sizable: true, width: 80 },
-				]
+				],
+				listeners: {
+					rowdblclick: this.onGridDblClick
+				}
 			});
+		}
+
+		onGridDblClick( row, model ) {
+			
+			// create a dialog to show the row
+
+			let items = {
+				layout: 'vertical',
+				style: { 
+					padding: 16 
+				},
+				items: [
+					{
+						xtype: 'TextField',
+						value: model._get('first_name',row),
+						label: 'First name',
+					},
+					{
+						xtype: 'TextField',
+						value: model._get('last_name',row),
+						label: 'Last name',
+					},
+					{
+						xtype: 'TextField',
+						value: model._get('address',row),
+						label: 'Address',
+					},
+					{
+						xtype: 'TextField',
+						value: model._get('num',row),
+						label: 'Number',
+					},
+					{
+						layout: {
+							type: 'horizontal',
+							direction: 'end'
+						},
+						style: {
+							marginTop: 8
+						},
+						items: [
+							{
+								xtype: 'Button',
+								title: 'OK',
+								width: 80,
+							},
+							{
+								width: 4,
+							},
+							{
+								xtype: 'Button',
+								title: 'Cancel',	
+								width: 80,
+							}
+						]
+					}
+				]
+			}
+
+			let modal = new Window( {title:'Edit item', content: items, modal: true} );
+			modal.show( );
 		}
 
 		alertClick( ) {

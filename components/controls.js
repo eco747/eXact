@@ -388,6 +388,7 @@ class 	TextField extends Component
 			onchange: this.onChange,
 			onblur: this.onBlur,
 			onfocus: this.onFocus,
+			value: value
 		});
 
 		return {

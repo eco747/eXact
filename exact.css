@@ -155,6 +155,9 @@ body {
   color: #fff;
   padding: 8px 8px;
 }
+.x-window .x-header .x-icon {
+  cursor: pointer;
+}
 .x-modal-mask {
   position: absolute;
   z-index: 10;
@@ -183,6 +186,8 @@ body {
   padding: 4px 0 1px 0;
   border-bottom: 1px solid transparent;
   margin: 4px 0;
+  margin-right: 4px;
+  color: #757575;
 }
 .x-text-field .x-label.x-vert {
   margin-bottom: 0;
@@ -307,6 +312,7 @@ body {
   display: flex;
   align-items: center;
   padding: 8px 4px;
+  box-sizing: border-box;
 }
 .x-tree-list .x-tree-item .x-header .x-icon {
   margin: 4px;
@@ -316,6 +322,8 @@ body {
 }
 .x-tree-list .x-tree-item.owner > .x-header {
   font-weight: bold;
+  border-top: 1px solid #eeeeee;
+  border-bottom: 1px solid #eeeeee;
 }
 .x-tree-list .x-tree-item .x-header:hover {
   background-color: #00BCD4;
