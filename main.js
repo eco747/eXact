@@ -265,7 +265,7 @@ window.onload = function( ) {
 				},
 				value: '',
 				textHint: 'Enter a value - the filter operator is >=',
-				tooltip: 'The filter operator is >=.<br/><b>eXact</b> allow a lot of operators:<br/>&lt;, &lt;=, =, &gt;=, &gt;',
+				tooltip: { icon: 'fa@info-circle', html: 'The filter operator is >=.<br/><b>eXact</b> allow a lot of operators:<br/>&lt;, &lt;=, =, &gt;=, &gt;, a regular expression or a function' },
 				//required: 'true',
 				listeners:{
 					'change': doFilter

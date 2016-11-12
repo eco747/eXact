@@ -327,4 +327,10 @@ body {
   position: absolute;
   font-size: 80%;
   padding: 4px;
+  align-items: center;
+}
+.x-tooltip .x-icon {
+  font-size: 20px;
+  padding-right: 8px;
+  color: #00838F;
 }

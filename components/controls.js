@@ -353,7 +353,7 @@ class 	TextField extends Component
 		this.addEvents( 'change','blur','focus' );
 
 		if( this.tooltip ) {
-			this._tooltip = new Tooltip( {target:this, text: this.tooltip } );
+			this._tooltip = new Tooltip( {target:this, content: this.tooltip} );
 		}
 	}
 
@@ -787,6 +787,12 @@ class Tooltip extends WindowBase
 
 		assert( cfg.target, 'You must give a target to tooltips' );
 
+		if( isString(this.content) ) {
+			this.content = {
+				text: this.content
+			}
+		}
+
 		this.target.bindDOMEvents({
 			onmouseenter: this._showTooltip.bind(this),
 			onmouseleave: this._hideTooltip.bind(this)
@@ -830,15 +836,38 @@ class Tooltip extends WindowBase
 
 	render( ) {
 		
-		let msg = {
-			__direct: {
-				__html: this.text
+		let {text,html,icon} = this.content,
+			msg;
+
+		if( html ) {
+			msg = {
+				__direct: {
+					__html: html
+				}
 			}
-		};
-		
-		return {
-			cls: 'z-depth-1',
-			items: msg
+		}
+		else {
+			msg = text;
+		}
+
+		if( icon ) {
+			return {
+				cls: 'z-depth-1',
+				layout: 'horizontal',
+				items: [
+					{
+						xtype: 'Icon',
+						icon: icon
+					},
+					msg
+				]
+			}
+		}
+		else {
+			return {
+				cls: 'z-depth-1',
+				items: msg
+			}
 		}
 	}
 }
