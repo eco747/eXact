@@ -819,6 +819,10 @@ class Tooltip extends WindowBase
 	}
 
 	_hideTooltip( ) {
+		if( this.showTimer ) {
+			clearTimeout( this.showTimer );
+		}
+		
 		this.close( );
 	}
 
