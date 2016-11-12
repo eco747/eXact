@@ -729,6 +729,17 @@
 		_getDOM( ) {
 			return React.findDOMNode( this._ );
 		}
+
+		/**
+		 * add a class to the DOM element
+		 */
+		
+		_addDOMClass( cls ) {
+			let dom = this._getDOM( );
+			if( dom ) {
+				dom.className += ' '+cls;
+			}
+		}
 	}
 
 	$$.Component = Component;

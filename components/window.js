@@ -65,6 +65,9 @@
 				this._createRootNode( );			
 				this._init = true;
 			}
+			else {
+				this._refresh( );
+			}
 		}
 
 		/**
@@ -477,12 +480,117 @@
 		wnd.show( );
 	}
 
+	/**
+	 * 
+	 */
+	
+	class 	SnackBarItem extends Component 
+	{
+		constructor( cfg ) {
+			super( cfg );
+
+			this._clsName = 'x-item';
+			this.addEvents( 'discard' );
+
+			setTimeout( this._discard.bind(this), 5000 );
+			setTimeout( this._fadeOut.bind(this), 4500 );
+		}
+
+		render( ) {
+
+			if( this.icon ) {
+				return {
+					cls: this.cls,
+					layout: 'horizontal',
+					items: [
+						{ 
+							xtype: 'Icon',
+							icon: this.icon
+						},
+						this.text
+					]
+				}
+			}
+			else {
+				return {
+					cls: this.cls,
+					content: this.text
+				}
+			}
+		}
+
+		_fadeOut( ) {
+			this._addDOMClass( 'fade' );
+		}
+
+		_discard( ) {
+			this.fireEvent( 'discard', this.uid );
+		}
+	}
+
+	/**
+	 * 
+	 */
+
+	class 	SnackBar extends WindowBase {
+
+		constructor( cfg ) {
+			super( cfg );
+
+			this._items = [];
+			this._uid = 1;
+		}
+
+		addSnack( cfg ) {
+
+			cfg = apply( cfg, {
+				uid:this._uid++, 
+				listeners: {
+					discard: this._discardElement.bind(this)
+				}
+			});
+
+			this._items.push( new SnackBarItem(cfg) );
+			this.show( );
+		}
+
+		_discardElement( uid ) {
+
+			let items = this._items;
+			for( let e in items ) {
+				if( uid==items[e].uid ) {
+					 items = items.splice( e, 1 );
+					 if( items.length==0 ) {
+					 	this.close( );
+					 }
+					 else {
+					 	this._refresh( );
+					 }
+
+					 break;
+				}
+			}
+		}
+
+		render( ) {
+			return {
+				style: {
+					position: 'fixed',
+					left: 0,
+					bottom: 0,
+				},
+				items: this._items
+			}
+		}
+	}
+
 	$$.Menu = Menu;
 	$$.MenuItem = MenuItem;
 	$$.MenuSeparator = MenuSeparator;
 	$$.Window = Window;
 	$$.WindowBase = WindowBase;
 	$$.Exact.MessageBox = MessageBox;
+	$$.SnackBar = SnackBar;
 	$$.positionElementInScreen = positionElementInScreen;
 
 })( window || this );

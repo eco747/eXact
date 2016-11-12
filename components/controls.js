@@ -765,6 +765,10 @@ class TreeList extends Component
 		}
 		// click on a standard element
 		else {
+			if( item.handler ) {
+				item.handler( item );
+			}
+
 			this.fireEvent( 'click', item );
 		}
 	}

@@ -450,3 +450,34 @@ body {
     	color: #00838F;
     }
 }
+
+.x-snack-bar {
+
+	.x-item {
+		background-color: #616161;
+	    color: white;
+	    padding: 4px 8px;
+	    margin-top: 4px;
+	    border-radius: 2px;
+	    margin-left: 4px;
+	    margin-bottom: 4px;
+	    font-size: 80%;
+	    opacity: 1;
+	    align-items: center;
+
+	    &.alert {
+	    	background-color: #BF360C;
+	    }
+
+	    .x-icon {
+	    	padding-right: 6px;
+	    }
+	
+		&.fade {
+			opacity: 0;
+		    transition: opacity 700ms ease-out;
+		}
+	}
+}
+
+

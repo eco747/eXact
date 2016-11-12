@@ -108,16 +108,21 @@ window.onload = function( ) {
 		
 		createPanel( store ) {
 			let me = this;
+
+			this.snack_bar = new SnackBar( );
 				
+			function showSnack( el ) {
+				me.snack_bar.addSnack( {text: 'click on: ' + el.title, icon: el.icon, cls: el.mytype } );
+			}
 
 			// 	navigation bar
 			let navbar = new TreeList( {
 				items: [
 					{ title: 'Folder', open: 'true', items: [
-						{ title: 'New', icon: 'fa@file-text-o' },
-						{ title: 'Open', icon: 'fa@external-link' },
-						{ title: 'Close', icon: 'fa@times-circle' },
-						{ title: 'Properties', icon: 'fa@cogs' },
+						{ title: 'New', icon: 'fa@file-text-o', handler: showSnack, mytype: 'alert' },	// mytype is used only in the showSnack function for the demo
+						{ title: 'Open', icon: 'fa@external-link', handler: showSnack },
+						{ title: 'Close', icon: 'fa@times-circle', handler: showSnack },
+						{ title: 'Properties', icon: 'fa@cogs', handler: showSnack },
 					]},
 				]
 			});
