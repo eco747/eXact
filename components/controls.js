@@ -1,3 +1,6 @@
+
+// *********************************************************************************************************
+
 /**
  * 	Icon class
  */
@@ -70,7 +73,7 @@ Icon.GlyphRE = /(\w+)\@([\w_-]+)/;
 
 
 
-
+// *********************************************************************************************************
 
 
 /**
@@ -189,6 +192,9 @@ class 	Sizer extends Component {
 }
 
 
+// *********************************************************************************************************
+
+
 /**
  * 	Panel class
  * 	panel is a simple container.
@@ -264,6 +270,8 @@ class 	Panel extends Component
 	}
 }
 
+// *********************************************************************************************************
+
 /**
  * Standard button
  */
@@ -317,6 +325,8 @@ class 	Button extends Component
 		}
 	}
 }
+
+// *********************************************************************************************************
 
 /**
  * Standard text field with label
@@ -414,6 +424,8 @@ class 	TextField extends Component
 	}
 }
 
+// *********************************************************************************************************
+
 /**
  * Standard CheckBox
  */
@@ -508,6 +520,7 @@ class 	CheckBox extends Component
 	}
 }
 
+// *********************************************************************************************************
 
 /**
  *	Application Bar
@@ -562,6 +575,8 @@ class AppBar extends Component
 	}
 }
 
+
+// *********************************************************************************************************
 
 /**
  * BottomNavigationBarItem class
@@ -645,6 +660,10 @@ class BottomNavigation extends Component
 	}
 }
 
+
+// *********************************************************************************************************
+
+
 /**
  * Application class
  */
@@ -659,6 +678,8 @@ class Application extends Component
 	}
 }
 
+// *********************************************************************************************************
+
 /**
  * 
  */
@@ -667,6 +688,8 @@ class TreeList extends Component
 {
 	constructor( cfg ) {
 		super( cfg );
+
+		this.addEvents( 'click' );
 	}
 
 	_buildItems( items ) {
@@ -695,18 +718,6 @@ class TreeList extends Component
 				children = this._buildItems( item.items );
 			}
 
-			let icon = item.icon;
-			if( !icon ) {
-				/*if( item.items ) {
-					if( item.open ) {
-						icon = 'fa@folder-open-o';
-					}
-					else {
-						icon = 'fa@folder-o';	
-					}
-				}*/
-			}
-
 			result.push({
 				cls: cls,
 				items: [
@@ -714,13 +725,22 @@ class TreeList extends Component
 						cls: 'x-header',
 						layout: 'horizontal',
 						items: [
-							Icon.buildRendering( item.items ? (item.open ? 'fa@chevron-down' : 'fa@chevron-right') : '', 12 ),
-							Icon.buildRendering( icon, 12 ),
+							{
+								xtype: 'Icon',
+								icon: (item.items ? (item.open ? 'fa@chevron-down' : 'fa@chevron-right') : undefined), 
+								size: 12
+							},
+							{
+								xtype: 'Icon',
+								icon: item.icon,
+								size: 12
+							},
 							{
 								cls: 'x-text',
 								content: item.title
 							}, 
-						]
+						],
+						onclick: this.onItemClick.bind(this,item),
 					},
 					{
 						cls: 'content',
@@ -731,6 +751,18 @@ class TreeList extends Component
 		}
 
 		return result;
+	}
+
+	onItemClick( item ) {
+		// click on a folder
+		if( item.items ) {
+			item.open = !item.open;
+			this._refresh( );
+		}
+		// click on a standard element
+		else {
+			this.fireEvent( 'click', item );
+		}
 	}
 
 	render( ) {

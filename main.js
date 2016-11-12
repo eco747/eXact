@@ -26,7 +26,8 @@ window.onload = function( ) {
 				reader: 'json'
 			} );
 
-			this.grid = this.createGrid( store );
+			this.createGrid( store );
+
 			this.panel = this.createPanel( store );
 			this.botbar = this.createBotBar( );
 			this.appbar = this.createAppBar( );
@@ -43,7 +44,14 @@ window.onload = function( ) {
 						flex: 1,
 						items: [
 							this.panel,
-							this.grid,
+							{
+								layout: 'vertical',
+								flex: 1,
+								items: [
+									this.edit,
+									this.grid,
+								]
+							}
 						]
 					},
 					this.botbar
@@ -101,25 +109,6 @@ window.onload = function( ) {
 		createPanel( store ) {
 			let me = this;
 				
-			function doFilter( value ) {
-				store.filter( {
-					field: 'num',
-					operator: '>=',
-					value: value
-				});
-			}
-
-			let edit = new TextField({ 
-				label: 'Filter on num >=',
-				labelAlign: 'top',
-				value: '',
-				textHint: 'Enter a value',
-				required: 'true',
-				listeners:{
-					'change': doFilter
-				}
-			});
-			
 
 			// 	navigation bar
 			let navbar = new TreeList( {
@@ -204,22 +193,21 @@ window.onload = function( ) {
 			let dlg = {
 				layout: 'vertical',
 				items: [
-					edit,
-					{
-						layout: {
-							type: 'horizontal',
-							direction: 'end'
-						},
-						items: {
-							xtype: 'Button',
-							title: 'OK',
-							width: 50,
-						}
-					},
-					{
-						layout: 'horizontal',
-						items: new CheckBox({label:'Auto Refresh'}),	// changed icon just to play
-					},
+//					{
+//						layout: {
+//							type: 'horizontal',
+//							direction: 'end'
+//						},
+//						items: {
+//							xtype: 'Button',
+//							title: 'OK',
+//							width: 50,
+//						}
+//					},
+//					{
+//						layout: 'horizontal',
+//						items: new CheckBox({label:'Auto Refresh'}),	// changed icon just to play
+//					},
 					navbar,
 					{
 						layout: 'vertical',
@@ -261,7 +249,30 @@ window.onload = function( ) {
 				}
 			}
 
-			return new Grid( {
+			function doFilter( value ) {
+				store.filter( {
+					field: 'num',
+					operator: '>=',
+					value: value
+				});
+			}
+
+			this.edit = new TextField({ 
+				label: 'Filter on Number',
+				labelWidth: 120,
+				style: {
+					padding: 4,
+				},
+				value: '',
+				textHint: 'Enter a value - the filter operator is >=',
+				//required: 'true',
+				listeners:{
+					'change': doFilter
+				}
+			});
+		
+
+			this.grid = new Grid( {
 				store: store,
 				flex: 1,
 				columns: [
