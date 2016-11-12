@@ -338,6 +338,7 @@ window.onload = function( ) {
 								xtype: 'Button',
 								title: 'OK',
 								width: 80,
+								handler: close
 							},
 							{
 								width: 4,
@@ -346,10 +347,15 @@ window.onload = function( ) {
 								xtype: 'Button',
 								title: 'Cancel',	
 								width: 80,
+								handler: close
 							}
 						]
 					}
 				]
+			}
+
+			function close( ) {
+				modal.close( );
 			}
 
 			let modal = new Window( {title:'Edit item', content: items, modal: true, frame: 2} );

@@ -6,3 +6,6 @@
 # window #
 - move into component.js
 - move menus into controls.js
+
+# toolbars #
+- toolbars
