@@ -352,7 +352,7 @@ window.onload = function( ) {
 				]
 			}
 
-			let modal = new Window( {title:'Edit item', content: items, modal: true} );
+			let modal = new Window( {title:'Edit item', content: items, modal: true, frame: 2} );
 			modal.show( );
 		}
 

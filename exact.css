@@ -148,7 +148,7 @@ body {
 }
 .x-window {
   background-color: #fff;
-  z-index: 20;
+  border: 0px solid #006064;
 }
 .x-window .x-header {
   background-color: #00838F;

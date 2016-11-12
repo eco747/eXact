@@ -164,8 +164,7 @@
 		}
 
 		render( ) {
-			
-	    	return {
+			return {
 	    		cls: 'x-box x-nosel ' + this.cls,
 	    		style: {
 	    			position: 'fixed',
@@ -173,6 +172,7 @@
 	    			height: this.height,
 	    			minWidth: 100,
 	    			minHeight: 100,
+	    			borderWidth: this.frame ? this.frame : 0
 	    		},
 
 	    		items: [
