@@ -55,9 +55,10 @@
 		}		
 
 		/**
-		 * show the window
+		 * show the window as modal
 		 * @param  {Object} showInfo - depending of the subclasses
 		 */
+		
 		show( showInfo ) {
 			if( !this._init ) {
 				this._show_info = showInfo;
@@ -110,6 +111,10 @@
 			React.renderSubtreeIntoContainer( this._, React.createElement(this._), this._root );
 		}
 
+		/**
+		 * check is the click was done on our descendant
+		 */
+		
 		_checkClick( e ) {
 			let dom = this._getDOM( );
 
@@ -118,13 +123,18 @@
 			}
 		}
 
+		/**
+		 * a click appear outside of this or our descendants
+		 */
+		
 		onClickAway( ) {
 			this.close( );
 		}
 	}
 
+
 	/**
-	 * 	Window class
+	 * 	Stabdard Window class
 	 * 	basic Window with a title
 	 */
 	
@@ -163,6 +173,9 @@
 		  	}
 	    }
 	}
+
+
+
 
 	/**
 	 * MenuSeparator
@@ -271,6 +284,10 @@
 			}
 		}
 
+		/**
+		 * compute the menu position (avoid getting out of the screen)
+		 */
+		
 		_calcPosition( tar_dom, ref_dom, align, lvl=0 ) {
 
 			let rc_ref = ref_dom.getBoundingClientRect( ),

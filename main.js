@@ -109,9 +109,17 @@ window.onload = function( ) {
 				});
 			}
 
-			let edit = new TextField({label:'Filter on num >=',labelAlign:'top',value:'',textHint:'Enter a value',required:'true'});
-			edit.on('change', doFilter );
-
+			let edit = new TextField({ 
+				label: 'Filter on num >=',
+				labelAlign: 'top',
+				value: '',
+				textHint: 'Enter a value',
+				required: 'true',
+				listeners:{
+					'change': doFilter
+				}
+			});
+			
 
 			// 	navigation bar
 			let navbar = new TreeList( {
@@ -200,7 +208,11 @@ window.onload = function( ) {
 					{
 						layout: 'horizontal',
 						layoutDir: 'end',
-						items: new Button({title:'OK',width:50}),
+						items: {
+							xtype: 'Button',
+							title: 'OK',
+							width: 50,
+						}
 					},
 					{
 						layout: 'horizontal',

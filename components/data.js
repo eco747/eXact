@@ -10,10 +10,22 @@
  * 		'number'
  * 		'boolean'
  * 		'date'
+ *
+ * 	TODO: 'sql-date'
  */
 
 class 	DataField
 {
+	/**
+	 * @constructor
+	 * @param  {string} options.name - field name 
+	 * @param  {string} options.type - field type (one of 'string','number','boolean','date')
+	 * @param  {any} options.defValue - default value
+	 * @param  {function} options.convert - converter function
+	 * @param  {[type]} options.auto     [description]
+	 * @param  {number} options.idx - field index
+	 */
+	
 	constructor( { name, type, defValue, convert, auto, idx } ) {
 
 		this._name = name;
@@ -33,6 +45,12 @@ class 	DataField
 		}
 	}
 
+	/**
+	 * get the field value
+	 * @param  {array} buffer - buffer to look into
+	 * @return {any} - field value 
+	 */
+	
 	get( buffer ) {
 
 		let { _type, _defValue, _convert, _auto } = this,
@@ -69,6 +87,11 @@ class 	DataField
 		return v;
 	}
 
+	/**
+	 * TODO
+	 * @param {[type]} buffer [description]
+	 */
+	
 	set( buffer ) {
 		this._raw[name]	= value;
 	}
@@ -80,7 +103,8 @@ class 	DataField
  *	A Model definition always has an identifying field which should yield a unique key for each instance. 
  *	By default, a field named "id" will be created with a mapping of "id". 
  *
- * TODO: keep track of dirty on set
+ *  TODO: keep track of dirty on set (use meta-data field)
+ *  TODO: save 
  */
 
 class 	DataModel 
@@ -108,13 +132,15 @@ class 	DataModel
 	}
 
 	/**
-	 * return the internal record id depending on the idProperty gicen in the constructor
+	 * convert raw data 
+	 * internally, records are stored a an array of fields
+	 * this function is responsible to do the transformation
+	 * copying only known fields in the array
+	 * 
+	 * an element is added at the end to store internal data (meta-datas for this record)
+	 * initially null
 	 */
 	
-	_getId( buffer ) {
-		return this._get( this._idProperty, buffer );
-	}
-
 	convert( rawData ) {
 
 		let record = [],
@@ -124,7 +150,18 @@ class 	DataModel
 			record.push( fields[f].get( rawData ) );
 		}
 
+		// push meta datas
+		record.push( null );
+
 		return record;
+	}
+
+	/**
+	 * return the internal record id depending on the idProperty given in the constructor
+	 */
+	
+	_getId( buffer ) {
+		return this._get( this._idProperty, buffer );
 	}
 
 	_get( name, buffer ) {
@@ -175,6 +212,10 @@ class 	DataModel
 		}
 	}
 
+	/**
+	 * generate the real field from desc
+	 */
+	
 	_genField( fld, fid ) {
 
 		if( isString(fld) ) {
@@ -210,6 +251,7 @@ class 	DataModel
 
 /**
  * DataReaders are responsible of parsing data & generate record set for DataStores
+ * DataReader is the base class, you never use it but derived classes (json...)
  */
 
 class 	DataReader
@@ -256,6 +298,11 @@ class 	JsonReader extends DataReader
 // 									DataSorter
 // *********************************************************************************************************
 
+/**
+ * DataSorter is the method that allow sorting of DataStore
+ * @internal
+ */
+
 class 	DataSorter
 {
 	constructor( store, {field, transform, fn, dir} ) {
@@ -298,6 +345,12 @@ class 	DataSorter
 // *********************************************************************************************************
 // 									DataFilter
 // *********************************************************************************************************
+
+
+/**
+ * DataFilter is responsible of filtering DataStore
+ * @internal
+ */
 
 class 	DataFilter
 {
@@ -371,12 +424,20 @@ class 	DataFilter
 
 /**
  *	DataStore is a standardized way to store & access data
+ *	it can fire events (change)
+ *	
  *	TODO: proxies
- *	TODO: observable
  */
 
 class 	DataStore extends Observable
 {
+	/**
+	 * constructor
+	 * @param  {DataModel} options.model - the model to work on
+	 * @param  {DataReader|string} options.reader - the data reader that will fill the store, if a string is given, try to find a known reader ('json'...)
+	 * @param  {Object|nulll} options.data - data to pass to the reader to initially fill the store
+	 */
+
 	constructor( {model, reader, data } ) {
 		super( );
 
@@ -389,7 +450,6 @@ class 	DataStore extends Observable
 		this.filter_fields = null;
 
 		this.index 	= null;
-
 
 		if( isString(reader) ) {
 			switch( reader ) {
@@ -415,6 +475,10 @@ class 	DataStore extends Observable
 	 * field can also be an object { field, value, operator }
 	 * 	operator one of '=', '!=', '<', '<=', '>=', '>'
 	 * field can also be an array or object as describe just before
+	 * @example
+	 * 	filter( 'Number', 7 );
+	 * 	filter( { field: 'Number', value: 7, operator: '>=' } );
+	 * 	filter( [{ field: 'Number', value: 7, operator: '>=' }, { field: 'Number', value: 9, operator: '<=' }] )
 	 */
 	
 	filter( field, value ) {
@@ -455,6 +519,8 @@ class 	DataStore extends Observable
 	 * if field is a string, just sort by the field using dir as direction ('ASC' or 'DESC')
 	 * field can also be an object { field, dir, transform, fn }
 	 * field can also be an array or object as describe just before
+	 * @example
+	 * 	sort( 'Number', 'ASC' )
 	 */
 	
 	sort( field, dir ) {
@@ -489,7 +555,9 @@ class 	DataStore extends Observable
 	}
 
 	/**
-	 * 
+	 * load the data. 
+	 * data will be parsed by the dataReader.
+	 * @param {object} data - data to read
 	 */
 	
 	load( data ) {
@@ -497,6 +565,11 @@ class 	DataStore extends Observable
 		this._recalcIndex( );		
 	}
 
+	/**
+	 * return the number of records.
+	 * the filter is taken in account
+	 */
+	
 	getCount( ) {
 		if( this.index ) {
 			return this.index.length;
@@ -505,6 +578,10 @@ class 	DataStore extends Observable
 		return this.data ? this.data.length : 0;
 	}
 
+	/**
+	 * return the n'th record
+	 */
+	
 	getAt( index ) {
 
 		if( !this.data || index<0 || index>=this.getCount() ) {
@@ -519,6 +596,10 @@ class 	DataStore extends Observable
 		}
 	}
 
+	/**
+	 * recalc the record indirection (filter & sort)
+	 */
+	
 	_recalcIndex( ) {
 
 		//	build it sequentially with seq indexes
@@ -580,7 +661,7 @@ class 	DataStore extends Observable
 	}
 
 	/**
-	 * 
+	 * construct the sorters
 	 */
 	
 	_buildSorter( fields ) {
@@ -615,7 +696,7 @@ class 	DataStore extends Observable
 	}
 
 	/**
-	 * 
+	 * construct the filters
 	 */
 		
 	_buildFilters( fields ) {
@@ -669,6 +750,11 @@ class 	DataStore extends Observable
             return	true;
         }
 	}
+
+	/**
+	 * return the n'th element
+	 * without filtering & sorting
+	 */
 
 	_get( index ) {
 		return this.data[index];	

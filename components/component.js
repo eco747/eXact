@@ -2,6 +2,7 @@
 
 	const 	skipped_attrs = {
 		'tag': true,
+		'xtype': true,
 		'cls': true,
 		'items': true,
 		'content': true,
@@ -9,6 +10,7 @@
 		'flex': true,
 		'hidden': true,
 		'layoutDir': true,
+		'listeners': true
 	};
 
 	const 	shortcuts = {
@@ -26,6 +28,37 @@
 		'space-around': 'space-around'
 	};
 
+	const 	object_factory = {
+	};
+
+	/**
+	 * create an object by it's name
+	 * the factories are cahed.
+	 * @param  {object} cfg object descriptor (must contain an xtype variable)
+	 * @return {object} the created object 
+	 * @throws {Error} If the xtype is unknown
+	 */
+	
+	function createObject( cfg ) {
+
+		let type = cfg.xtype,
+			factory = object_factory[type];
+
+		if( !factory ) {
+			factory = object_factory[type] = new Function( 'cfg', 'return new '+type+'( cfg );' );
+		}
+
+		try {
+			return factory( cfg );
+		}
+		catch( e ) {
+			assert( false, "Unknown xtype" );
+		}
+	}
+
+
+
+
 	/**
 	 * Event class 
 	 * an event is defined by it's name
@@ -39,10 +72,13 @@
 			this.observers = [];
 		}
 
+		/**
+		 * add a listener for the event
+		 * @param {Function} o - function to call when the event is fired
+		 */
+		
 		add( o ) {
-			if( !o ) {
-				debugger;
-			}
+			assert( o, 'Unknown observer' );
 
 			let idx = this.observers.indexOf( o );
 			if( idx<0 ) {
@@ -50,17 +86,27 @@
 			}
 		}
 
+		/**
+		 * remove a listener for the event
+		 * care, the listener must be exactly the same as the one you gave in add.
+		 * binding twice a function give a different function.
+		 * @param  {Function} o - function to remove
+		 * @throws {error} If the event was not added
+		 */
+		
 		remove( o ) {
 
 			let idx = this.observers.indexOf( o );
-			if( idx<0 ) {
-				console.log( 'Unknown observer:', o );
-			}
-			else {
-				this.observers.splice( idx, 1 );
-			}
+			assert( idx>=0, 'Unknown observer: ' + o );
+			
+			this.observers.splice( idx, 1 );
 		}
 
+		/**
+		 * fire the event (call all listeners for the event)
+		 * @param  {...} e - arguments
+		 */
+		
 		fire( ...e ) {
 
 			let obs = this.observers,
@@ -86,7 +132,13 @@
 			this._event_handlers 	= {};
 		}
 
-
+		/**
+		 * add known events
+		 * @example
+		 * 	add('click',change');
+		 * @param {string[]} events - events to add
+		 */
+		
 		addEvents( ...events ) {
 			let n = events.length,
 				i;
@@ -103,6 +155,15 @@
 			}
 		}
 
+		/**
+		 * fire an event
+		 * @param  {string} name - name of the event to fire
+		 * @param  {any[]} e  - arguments
+		 * @throws {error} If the event is unknown
+		 * @example
+		 * 	fireEvent( 'click', originalEvent );
+		 */
+		
 		fireEvent( name, ...e ) {
 			let ev = this._event_handlers[name]
 			if( ev ) {
@@ -110,22 +171,29 @@
 				return;
 			}
 			else {
-				console.log( 'Unknown event:', name );
+				assert( false, 'Unknown event: ' + name );
 			}
 		}
 
+		/**
+		 * add a listener for an event
+		 * @param {string} name - event name
+		 * @param {Function} fn - listener function
+		 * @throws {error} If event name is unknown
+		 * @example
+		 * 	addListener( 'click', this.myMethod );
+		 */
+		
 		addListener( name, fn ) {
-			if( !isString(name) ) {
-				debugger;
-			}
-
+			assert( isString(name), 'Unknown listener type' );
+			
 			let ev = this._event_handlers[name];
 			if( ev ) {
 				ev.add( fn );
 				return;
 			}
 			else {
-				throw 'Unknown event: ' + name;
+				assert( false, 'Unknown event: ' + name );
 			}
 		}
 
@@ -134,10 +202,15 @@
 			this.addListener( ...a );
 		}
 
+		/**
+		 * remove a listener for an event
+		 * @param  {string} name - name of the event
+		 * @param  {Function} fn - listener to remove
+		 * @throws {error} If event name is unknown or if the listener was not present
+		 */
+		
 		removeListener( name, fn ) {
-			if( !isString(name) ) {
-				debugger;
-			}
+			assert( isString(name), 'Unknown listener type' );
 
 			let ev = this._event_handlers[name]
 			if( ev ) {
@@ -145,7 +218,7 @@
 				return;
 			}
 			else {
-				console.log( 'Unknown event:', name );
+				assert( false, 'Unknown event:' + name );
 			}
 		}
 
@@ -154,6 +227,10 @@
 			this.removeListener( ...a );
 		}
 
+		/**
+		 * find an event handler
+		 */
+		
 		_findEvent( name ) {
 
 			let evts = this._event_handlers;
@@ -210,7 +287,10 @@
 		/**
 		 * create automatically a set function for the given variable name
 		 * ie. createAccessor('title') will define a method setTitle, when called if title change, automatically call _refresh
-		 * you can use multiple value createAccessor('title','icon')
+		 * you can use multiple value 
+		 * @example
+		 * 	// will create this.setTitle( x ), this.getTitle( ), this.setIcon( x ) and this.getIcon()
+		 * 	createAccessor('title','icon')
 		 */
 		
 		createAccessor( ...vars ) {
@@ -253,13 +333,14 @@
 			}
 
 			if( n==0 ) {
-				console.log( 'Useless bindAll call' );
+				log( 'Useless bindAll call' );
 			}
 		}
 
 		/**
 		 * append automatically events to the dom and bind methods to this if needed (see bindAll)
-		 * ex: bind( { onclick: this.onClick, onkeypress: this.onKey } );
+		 * @example
+		 * 	bind( { onclick: this.onClick, onkeypress: this.onKey } );
 		 */
 		
 		bindEvents( events ) {
@@ -284,7 +365,7 @@
 			for( let c in cfg ) {
 				if( cfg.hasOwnProperty(c) ) {
 					if( c in this ) {
-						throw 'You cannot define a parameter that squash something in the component';
+						assert( false, 'You cannot define a parameter that squash something in the component' );
 					}
 
 					this[c] = cfg[c];
@@ -377,7 +458,13 @@
 							items.push( React.createElement( child ) );	
 						}
 						else if( isObject(child) ) {
-							items.push( this._emit(child,lvl+1) );
+							if( child.xtype ) {
+								child = createObject( child );
+								items.push( React.createElement( child._ ) );
+							}
+							else {
+								items.push( this._emit(child,lvl+1) );
+							}
 						}
 					}
 				}
@@ -393,6 +480,14 @@
 				for( i in t ) {
 					props[i] = t[i];
 				}
+			}
+
+			// for the main element, we add listeners 
+			if( lvl==0 && this.listeners ) {
+				t = this.listeners;
+				for( i in t ) {
+					this.addListener( i, t[i] );
+				}	
 			}
 
 			return React.createElement( tag, props, items );
@@ -463,6 +558,8 @@
 
 		/**
 		 * 	create the object to a specified element
+		 * 	cf: render
+		 * 	@param {DOMElement|string} el - element to render to
 		 */
 		
 		renderTo( el ) {
@@ -484,23 +581,25 @@
 				return this._emit( this.render() );
 			}
 			catch( e ) {
-				debugger;
-				console.log( 'rendering error on object "' + this.constructor.name + '" : ' + JSON.stringify(e) );
+				assert( false, 'Rendering error on object "' + this.constructor.name + '" : ' + JSON.stringify(e) );
 				return null;
 			}
 		}
 
+		/**
+		 * main rendering method, you must define a render method in your object definition
+		 */
+		
 		render( ) {
-			debugger;
-			throw 'Please redender something';
+			assert( false, 'Please rendeder something' );
 		}
+
 
 		_beforeMount( ) {
 			this.beforeMount( );
 		} 
 
 		beforeMount( ) {
-
 		}
 		
 		_afterMount( ) {
@@ -508,7 +607,6 @@
 		}
 
 		afterMount( ) {
-
 		}
 		
 		_beforeUnmount( ) {
@@ -516,7 +614,6 @@
 		}
 
 		beforeUnmount( ) {
-
 		}
 			
 		_afterUnmount( ) {
@@ -524,30 +621,41 @@
 		} 
 
 		afterUnmount( ) {
-
 		}
 		
 		_beforeUpdate( ) {
-			this.beforeUpdate( this._updates );
+			this.beforeUpdate( );
 		} 
 
 		beforeUpdate( changes ) {
-
 		}
 		
 		_afterUpdate( ) {
-			this.afterUpdate( this._updates );
-			this._updates = {};
+			this.afterUpdate( );
 		}
 
 		afterUpdate( changes ) {
-
 		}
 
+		/**
+		 * check is the target of event is this
+		 */
+		
 		isTargetOfEvent( event ) {
 			return event.target==this._;
 		}
 
+		/**
+		 * set a member to a value
+		 * if the value change, fire a refresh on the element
+		 * 
+		 * @param {string|object} name - if name is a string, then value is expected
+		 *                             	 if name is an object then set all values of the object
+		 * @param {any} value - the value to set if name is a string - ignored else
+		 * @example
+		 * 	set( 'title', 'Hello world' )
+		 * 	set( {title:'Hello world', icon: 'fa@undo' } )
+		 */
 		set( name, value ) {
 			
 			if( !isObject(name) ) {
@@ -568,49 +676,14 @@
 		}
 
 		/**
-		 * define all properies of data as direct properties
+		 * set a single value on the object
 		 */
 		
-		/*
-		_genProperties( target ) {
-			
-			let data = Object.keys( this._data ),
-				me = this, 
-				watched = {},
-				p;
-
-			for( p in data ) {
-			
-				let iname = data[p];
-					
-				// elements starting with an underscore are hidden from other objects
-				if( iname[0]=='_' ) {
-					continue;
-				}
-
-				let name = camelCase( iname, true );
-				if( this._watched && this._watched[name] ) {
-					continue;
-				}
-
-				this['set' + name ] = ( value ) => {me._setValue(iname,value);return me;}
-				this['get' + name ] = ( ) => { return me.[iname];}
-
-				watched[name] = true;
-			}
-
-			this._watched = watched;
-		}
-		*/
-
 		_setValue( name, value, quiet ) {
 
+			assert( this.hasOwnProperty(name), 'Unknown data property ' + name );
+
 			let 	chg = false;
-
-			if( !this.hasOwnProperty(name) ) {
-				throw 'Unknown data property ' + name;
-			}
-
 			if( this[name] !== value ) {
 
 				chg = true;				
@@ -624,6 +697,10 @@
 			return chg;
 		}
 		
+		/**
+		 * data was changed
+		 */
+		
 		_dataChanged( ) {
 			this._refresh( );
 		}
@@ -636,6 +713,10 @@
 			this._.setState( {_:this._chg_id++}, callback );
 		}
 
+		/**
+		 * return the DOM element attached to this (if any)
+		 */
+		
 		_getDOM( ) {
 			return React.findDOMNode( this._ );
 		}
