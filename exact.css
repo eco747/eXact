@@ -181,43 +181,54 @@ body {
 .x-modal-mask .x-header .x-icon {
   font-size: 16px;
 }
+.x-text-field {
+  padding-top: 4px;
+  margin-top: 4px;
+}
 .x-text-field .x-label {
   box-sizing: border-box;
-  padding: 4px 0 1px 0;
-  border-bottom: 1px solid transparent;
-  margin: 4px 0;
+  padding: 0;
   margin-right: 4px;
   color: #757575;
+  min-height: 1.2em;
 }
-.x-text-field .x-label.x-vert {
-  margin-bottom: 0;
-  font-size: 80%;
-  color: #999999;
-}
-.x-text-field input {
+.x-text-field input,
+.x-text-field textarea {
+  min-width: 0;
   box-sizing: border-box;
   border: none;
-  border-bottom: 1px solid #bdbdbd;
   outline: none;
   background-color: transparent;
-  margin: 4px 0;
-  padding: 4px 0 1px 0;
+  padding: 0;
+  margin: 0;
   font-size: 14px;
+  min-height: 1.2em;
 }
-.x-text-field input.x-vert {
-  margin-top: 0;
+.x-text-field .x-line {
+  height: 3px;
+  box-sizing: border-box;
+}
+.x-text-field .x-line.edit {
+  border-bottom: 1px solid #bdbdbd;
+}
+.x-text-field.vert {
+  margin-bottom: 8px;
+}
+.x-text-field.vert .x-label {
+  font-size: 80%;
+  color: #999999;
 }
 .x-text-field.error .x-label {
   color: #bf360c;
 }
-.x-text-field.error input {
-  border-bottom: 1px solid #bf360c;
+.x-text-field.error .x-line {
+  border-bottom-color: #bf360c;
 }
 .x-text-field.focus .x-label {
   color: #0097a7;
 }
-.x-text-field.focus input {
-  border-bottom: 1px solid #00bcd4;
+.x-text-field.focus .x-line {
+  border-bottom-color: #00bcd4;
 }
 .x-check-box {
   padding: 4px 0;

@@ -78,7 +78,7 @@ window.onload = function( ) {
 
 			return new AppBar({
 				title:'eXact', 
-				icon:'fa@thermometer-empty',
+				icon:'fa@hand-spock-o ',
 				menu: menu
 			});
 		}
@@ -298,6 +298,8 @@ window.onload = function( ) {
 		onGridDblClick( row, model ) {
 			
 			// create a dialog to show the row
+			let lw = 90,
+				la = 'left';
 
 			let items = {
 				layout: 'vertical',
@@ -309,21 +311,32 @@ window.onload = function( ) {
 						xtype: 'TextField',
 						value: model._get('first_name',row),
 						label: 'First name',
+						labelAlign: la,
+						labelWidth: lw
 					},
 					{
 						xtype: 'TextField',
+						labelAlign: 'top',
 						value: model._get('last_name',row),
 						label: 'Last name',
+						labelAlign: la,
+						labelWidth: lw
 					},
 					{
 						xtype: 'TextField',
+						multiline: true,
 						value: model._get('address',row),
 						label: 'Address',
+						labelAlign: la,
+						labelWidth: lw,
+						grow: 80
 					},
 					{
 						xtype: 'TextField',
 						value: model._get('num',row),
 						label: 'Number',
+						labelAlign: la,
+						labelWidth: lw
 					},
 					{
 						layout: {
@@ -358,7 +371,7 @@ window.onload = function( ) {
 				modal.close( );
 			}
 
-			let modal = new Window( {title:'Edit item', content: items, modal: true, frame: 2} );
+			let modal = new Window( {title:'Edit item', content: items, modal: true, frame: 1} );
 			modal.show( );
 		}
 

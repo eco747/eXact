@@ -236,34 +236,46 @@ body {
 
 .x-text-field
 {
+	padding-top: 4px;
+	margin-top: 4px;
+
 	.x-label {
 		box-sizing: border-box;	
-		padding: 4px 0 1px 0;
-		border-bottom: 1px solid transparent;
-		margin: 4px 0;
+		padding: 0;
 		margin-right: 4px;
 		color: #757575;
+		min-height: 1.2em;
 	}
 
-	.x-label.x-vert {
-		margin-bottom: 0;
-		font-size: 80%;
-		color: #999999;
-	}
-
-	input {
+	input,
+	textarea {
+		min-width: 0;
 		box-sizing: border-box;
       	border: none;
-		border-bottom: 1px solid #bdbdbd;
 		outline: none;
       	background-color: transparent;
-      	margin: 4px 0;
-      	padding: 4px 0 1px 0;
+      	padding: 0;
+      	margin: 0;
       	font-size: @def-font-size;
+      	min-height: 1.2em;
 	}
 
-	input.x-vert {
-		margin-top: 0;
+	.x-line {
+		height: 3px;
+		box-sizing: border-box;
+		
+		&.edit {
+			border-bottom: 1px solid #bdbdbd;
+		}
+	}
+
+	&.vert {
+		margin-bottom: 8px;
+	
+		.x-label {
+			font-size: 80%;
+			color: #999999;
+		}
 	}
 
 	&.required {
@@ -277,8 +289,8 @@ body {
 			color: #bf360c;
 		}
 
-		input {
-			border-bottom: 1px solid #bf360c;	
+		.x-line {
+			border-bottom-color: #bf360c;	
 		}
 	}
 
@@ -288,8 +300,8 @@ body {
 			color: #0097a7;
 		}
 
-		input {
-			border-bottom: 1px solid #00bcd4;
+		.x-line {
+			border-bottom-color: #00bcd4;
 		}
 	}
 }

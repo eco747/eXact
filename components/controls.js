@@ -326,9 +326,7 @@ class 	Button extends Component
 	}
 }
 
-// *********************************************************************************************************
-
-/**
+/** *********************************************************************************************************
  * Standard text field with label
  */
 
@@ -340,8 +338,10 @@ class 	TextField extends Component
 	 * @param {String} cfg.label - label text on the edit side
 	 * @param {Boolean} cfg.required - if true, an the edit will be on error if empty
 	 * @param {Number} cfg.labelWidth - label width
-	 * @param {String} cfg.labelAlign - label alignment, one of 'left', 'right', 'top'
+	 * @param {String} cfg.labelAlign - label alignment, one of 'left', top'
 	 * @param {String} cfg.textHint - text hint (text shown when the edit is empty)
+	 * @param {Boolean} cfg.multiline - if true the field is multiline
+	 * @param {number} cfg.grow - allow the multiline to grow until this limit
 	 */
 	
 	constructor( cfg ) {
@@ -367,33 +367,79 @@ class 	TextField extends Component
 		// prepare label -----------------
 		if( label || labelWidth ) {
 
-			items.push( {
-				cls: 'x-label' + (vert ? ' x-vert' : ''),
-				style: {textAlign: labelAlign},
-				width: labelWidth,
-				flex: (labelWidth ? undefined : 1),
-				content: (this.label + ':')
-			});
+			if( !vert ) {
+				items.push({
+					flex: (labelWidth ? undefined : 1),
+					layout: 'vertical',
+					items: [
+						{
+							cls: 'x-label',
+							style: {textAlign: labelAlign},
+							width: labelWidth,
+							content: (this.label + ':')
+						},
+						{
+							cls: 'x-line label',
+						}
+					]
+				});
+			}
+			else {
+				items.push({
+					cls: 'x-label',
+					style: {textAlign: labelAlign},
+					content: (this.label + ':')
+				});	
+			}
 		}
 
 		// prepare input ------------------
+		let ta_style = {};
+
+		if( this.multiline ) {
+			ta_style.resize = 'none';
+		
+			if( this.grow ) {
+				ta_style.maxHeight = this.grow;
+
+				if( this._height ) {
+					ta_style.height = this._height;
+					ta_style.overflow = this._height<this.grow ? 'hidden' : 'auto';
+				}
+				else {
+					ta_style.height = '1.2em';
+					ta_style.overflow = 'hidden';	
+				}
+			}
+		}
+		 
 		items.push({
-			tag: 'input',
-			cls: (vert ? ' x-vert' : ''),
 			flex: 1,
+			layout: 'vertical',
 			style: {
-				type: 'text',
+				minHeight: 'min-content',
 			},
-			placeholder: textHint,
-			onchange: this.onChange,
-			onblur: this.onBlur,
-			onfocus: this.onFocus,
-			value: value
+					
+			items: [
+				{
+					tag: this.multiline ? 'textarea' : 'input',
+					ref: this._acquireTA.bind(this),
+					style: ta_style,
+					placeholder: textHint,
+					onchange: this.onChange,
+					onblur: this.onBlur,
+					onfocus: this.onFocus,
+					value: value
+				},
+				{
+					cls: 'x-line edit',
+				}
+			]
 		});
 
 		return {
 			layout: vert ? 'vertical' : 'horizontal',
-			cls: (this._focus ? 'focus' : '') + (this._error ? ' error' : '' ) + (required ? ' required' : ''),
+			cls: (this._focus ? 'focus' : '') + (this._error ? ' error' : '' ) + (required ? ' required' : '') + (vert ? ' vert' : ''),
 			style: {
 				alignItems: labelAlign=='top' ? 'left' : 'center'
 			},
@@ -402,7 +448,12 @@ class 	TextField extends Component
 	}
 
 	onChange( e ) {
-		this.fireEvent( 'change', e.target.value );
+		this.value = e.target.value;
+		this.fireEvent( 'change', this.value );
+
+		if( this.multiline ) {
+			this._autoSize( );
+		}
 	}
 
 	onFocus( e ) {
@@ -427,7 +478,24 @@ class 	TextField extends Component
 
 		this._refresh( );
 	}
+
+	_acquireTA( dom ) {
+		this._ta = dom;
+	}
+
+	_autoSize( ) {
+		let dom = this._ta,
+			h = dom.style.height;
+
+		dom.style.height = '0px';
+		dom.value += ' ';
+		this._height = dom.scrollHeight;
+		dom.style.height = h;
+		
+		this._refresh( );		
+	}
 }
+
 
 // *********************************************************************************************************
 
