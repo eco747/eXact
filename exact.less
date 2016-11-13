@@ -196,10 +196,14 @@ body {
 	background-color: #fff;
 	border: 0px solid #006064;
 	
-    .x-header {
+    &>.x-header {
     	background-color: #00838F;
     	color: #fff;
     	padding: 8px 8px;
+
+    	.x-text {
+    		font-weight: bold;
+    	}
 
     	.x-icon {
     		cursor: pointer;
@@ -215,6 +219,7 @@ body {
 	right: 0;
 	bottom: 0;
 	background-color: rgba(0,0,0,0.5);
+	cursor: default;
 
 	display: flex;
 	align-items: center;   
@@ -508,4 +513,29 @@ body {
 	}
 }
 
+.x-tab-panel {
 
+	&>.x-header {
+		border-bottom: 1px solid #eeeeee;
+		box-sizing: border-box;
+		padding: 0 4px;
+
+		.x-tab {
+			padding: 8px;
+			box-sizing: border-box;
+			cursor: pointer;
+			height: 2.4em;
+			margin-bottom: -1px;
+		}
+
+		.x-tab:hover {
+			border-bottom: 1px solid #00BCD4;
+		}
+
+		.x-tab.active {
+			border-bottom: 3px solid #00BCD4;
+			cursor: default;
+		}
+	}
+
+}

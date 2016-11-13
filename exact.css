@@ -151,12 +151,15 @@ body {
   background-color: #fff;
   border: 0px solid #006064;
 }
-.x-window .x-header {
+.x-window > .x-header {
   background-color: #00838F;
   color: #fff;
   padding: 8px 8px;
 }
-.x-window .x-header .x-icon {
+.x-window > .x-header .x-text {
+  font-weight: bold;
+}
+.x-window > .x-header .x-icon {
   cursor: pointer;
 }
 .x-modal-mask {
@@ -380,4 +383,23 @@ body {
 .x-snack-bar .x-item.fade {
   opacity: 0;
   transition: opacity 700ms ease-out;
+}
+.x-tab-panel > .x-header {
+  border-bottom: 1px solid #eeeeee;
+  box-sizing: border-box;
+  padding: 0 4px;
+}
+.x-tab-panel > .x-header .x-tab {
+  padding: 8px;
+  box-sizing: border-box;
+  cursor: pointer;
+  height: 34px;
+  margin-bottom: -1px;
+}
+.x-tab-panel > .x-header .x-tab:hover {
+  border-bottom: 1px solid #00BCD4;
+}
+.x-tab-panel > .x-header .x-tab.active {
+  border-bottom: 3px solid #00BCD4;
+  cursor: default;
 }

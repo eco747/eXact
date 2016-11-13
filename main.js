@@ -69,7 +69,7 @@ window.onload = function( ) {
 
 			let menu = new Menu( {
 				items: [
-					new MenuItem({title:'About',icon:'fa@question'}),
+					new MenuItem({title:'About',icon:'fa@question', handler: this.showThemes.bind(this)}),
 					new MenuItem({title:'Settings',icon:'fa@cogs',menu:settings}),
 					new MenuSeparator( ),
 					new MenuItem({title:'Report an issue',icon:'fa@bug'}),
@@ -389,6 +389,40 @@ window.onload = function( ) {
 			}
 
 			let modal = new Window( {title:'Edit item', content: items, modal: true, frame: 1} );
+			modal.show( );
+		}
+
+		showThemes( ) {
+
+			let tab = new TabPanel( {
+				height: 150,
+				items: [
+					{
+						title: 'Colors',
+						items: {
+							content: 'colors'
+						}
+					},
+					{
+						title: 'Fonts',
+						items: {
+							content: 'fonts'
+						}
+					},
+					{
+						title: 'Sounds',
+						items: {
+							content: 'sounds'
+						}
+					}
+				]
+			});
+
+			function close( ) {
+				modal.close( );
+			}
+
+			let modal = new Window( {title:'Theme', content: tab, modal: true, width: 450 } );
 			modal.show( );
 		}
 

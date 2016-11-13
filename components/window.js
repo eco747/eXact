@@ -255,6 +255,11 @@
 				this._showSubMenu( );
 			}
 			else {
+
+				if( this.handler ) {
+					this.handler( this );
+				}
+
 				this.fireEvent( 'click' );
 
 				// simulate a clic to close the main menu
