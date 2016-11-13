@@ -69,7 +69,7 @@ window.onload = function( ) {
 
 			let menu = new Menu( {
 				items: [
-					new MenuItem({title:'About',icon:'fa@question', handler: this.showThemes.bind(this)}),
+					new MenuItem({title:'About',icon:'fa@question', handler: this.showTabs.bind(this)}),
 					new MenuItem({title:'Settings',icon:'fa@cogs',menu:settings}),
 					new MenuSeparator( ),
 					new MenuItem({title:'Report an issue',icon:'fa@bug',handler: this.showDate.bind(this)}),
@@ -86,16 +86,30 @@ window.onload = function( ) {
 		createBotBar( ) {
 			return new BottomNavigation({
 				buttons: [
-					new BottomNavigationItem({
-						title: 'Recent', 
+					{
+						xtype: 'BottomNavigationItem',
+						title: 'Test info', 
 						icon: 'fa@undo',
 						handler: this.recentClick.bind(this)
-					}),
-					new BottomNavigationItem({
-						title: 'BlueTooth', 
+					},
+					{ 
+						xtype: 'BottomNavigationItem',
+						title: 'Test alert', 
 						icon: 'fa@bluetooth',
 						handler: this.alertClick.bind(this)
-					})
+					},
+					{
+						xtype: 'BottomNavigationItem',
+						title: 'Test dates',
+						icon: 'fa@calendar',
+						handler: this.showDate.bind(this)
+					},
+					{
+						xtype: 'BottomNavigationItem',
+						title: 'Test tabs',
+						icon: 'fa@tasks',
+						handler: this.showTabs.bind(this)
+					}
 				]
 			});
 		}
@@ -381,7 +395,7 @@ window.onload = function( ) {
 			modal.show( );
 		}
 
-		showThemes( ) {
+		showTabs( ) {
 
 			let tab = new TabPanel( {
 				height: 150,
