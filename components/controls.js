@@ -348,6 +348,7 @@ class 	TextField extends Component
 		super( cfg );
 
 		this._error = false;
+		this._focus = false;
 
 		this.bindAll( );
 		this.addEvents( 'change','blur','focus' );
@@ -517,14 +518,16 @@ class 	CheckBox extends Component
 	constructor( cfg ) {
 		super( cfg, {value:false} );
 
-		this._error = false;
-		this._icon = new Icon( );
+		this._focus = false;
 		
 		this.bindAll( );
 		this.addEvents( 'changed','blur','focus' );
 
 		this.bindDOMEvents({
-			onchange: this.onChange
+			onclick: this.onClick,
+			onfocus: this.onFocus,
+			onblur: this.onBlur,
+			onkeypress: this.onKey,
 		});
 
 		this.createAccessor( 'value' );
@@ -537,10 +540,11 @@ class 	CheckBox extends Component
 		let items = [];
 
 		// prepare input ------------------
-		items.push({
+		/*items.push({
 			tag: 'input',
 			flex: 1,
 			type: 'checkbox',
+			tabIndex: -1,
 			style: {
 				pointerEvents: 'all',
 				opacity: 0,
@@ -552,7 +556,7 @@ class 	CheckBox extends Component
 			},
 			value: 'on',
 			checked: value,
-		});
+		});*/
 
 		// prepare label -----------------
 		if( label || labelWidth ) {
@@ -560,23 +564,24 @@ class 	CheckBox extends Component
 				cls: 'x-label',
 				style: {textAlign: labelAlign,marginRight:4},
 				width: labelWidth,
-				flex: labelWidth || 1,
-				content: label,
+				flex: labelWidth ? undefined : 1,
+				content: label + ':',
 			});
 		}
 
-		if( value ) {
-			this._icon.icon = (iconCheck || 'fa@check-square-o');
-		}
-		else {
-			this._icon.icon = (iconUncheck || 'fa@square-o');
-		}
-
-		items.push( this._icon );
+		items.push({
+			layout: 'horizontal',
+			flex: 1,
+			items: {
+				xtype: 'Icon',
+				icon: value ? (iconCheck || 'fa@check-square-o') : (iconUncheck || 'fa@square-o'),
+			}
+		});
 
 		return {
 			tag: 'label',
-			cls: value ? 'x-checked' : null,
+			tabIndex: 0,
+			cls: (value ? 'x-checked' : '') + (this._focus ? ' focus' : ''),
 			layout: 'horizontal',
 			style: {
 				alignItems: 'center',
@@ -586,10 +591,30 @@ class 	CheckBox extends Component
 		}
 	}	
 
-	onChange( e ) {
-		let checked = e.target.checked;
-		this.fireEvent('changed',checked);
-		this.setValue( checked );
+	onFocus( ) {
+		this._focus = true;
+		this._refresh( );
+	}
+
+	onBlur( ) {
+		this._focus = false;
+		this._refresh( );
+	}
+
+	onClick( ) {
+		this._toggle( );
+	}
+
+	onKey( e ) {
+		if( e.charCode==32 || e.charCode==13 ) {
+			this._toggle( );
+		}
+	}
+
+	_toggle( ) {
+		let value = !this.value;
+		this.setValue( value );
+		this.fireEvent('changed', value );
 	}
 }
 
