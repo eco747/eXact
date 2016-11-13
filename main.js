@@ -28,9 +28,9 @@ window.onload = function( ) {
 
 			this.createGrid( store );
 
-			this.panel = this.createPanel( store );
-			this.botbar = this.createBotBar( );
-			this.appbar = this.createAppBar( );
+			this.createPanel( store );
+			this.createBotBar( );
+			this.createAppBar( );
 		}
 
 		render( ) {
@@ -76,7 +76,7 @@ window.onload = function( ) {
 				]
 			});
 
-			return new AppBar({
+			this.appbar = new AppBar({
 				title:'eXact', 
 				icon:'fa@hand-spock-o ',
 				menu: menu
@@ -84,7 +84,7 @@ window.onload = function( ) {
 		}
 
 		createBotBar( ) {
-			return new BottomNavigation({
+			this.botbar = new BottomNavigation({
 				buttons: [
 					{
 						xtype: 'BottomNavigationItem',
@@ -212,21 +212,6 @@ window.onload = function( ) {
 			let dlg = {
 				layout: 'vertical',
 				items: [
-//					{
-//						layout: {
-//							type: 'horizontal',
-//							direction: 'end'
-//						},
-//						items: {
-//							xtype: 'Button',
-//							title: 'OK',
-//							width: 50,
-//						}
-//					},
-//					{
-//						layout: 'horizontal',
-//						items: new CheckBox({label:'Auto Refresh'}),	// changed icon just to play
-//					},
 					navbar,
 					{
 						layout: 'vertical',
@@ -240,7 +225,7 @@ window.onload = function( ) {
 				]
 			};
 
-			return new Panel( {width:300, content:dlg, sizers:'r'} );
+			this.panel = new Panel( {width:300, content:dlg, sizers:'r'} );
 		}
 
 		/**
@@ -462,6 +447,3 @@ window.onload = function( ) {
 	let app = new App();
 	app.renderTo(document.body);
 }
-
-
-
