@@ -72,7 +72,7 @@ window.onload = function( ) {
 					new MenuItem({title:'About',icon:'fa@question', handler: this.showThemes.bind(this)}),
 					new MenuItem({title:'Settings',icon:'fa@cogs',menu:settings}),
 					new MenuSeparator( ),
-					new MenuItem({title:'Report an issue',icon:'fa@bug'}),
+					new MenuItem({title:'Report an issue',icon:'fa@bug',handler: this.showDate.bind(this)}),
 				]
 			});
 
@@ -412,12 +412,32 @@ window.onload = function( ) {
 				]
 			});
 
+			let buttons = [
+				{
+					xtype: 'Button',
+					title: 'OK',
+					width: 80,
+					handler: close
+				},
+				{
+					xtype: 'Button',
+					title: 'Cancel',	
+					width: 80,
+					handler: close
+				}
+			];
+
 			function close( ) {
 				modal.close( );
 			}
 
-			let modal = new Window( {title:'Theme', content: tab, modal: true, width: 450 } );
+			let modal = new Window( {title:'Theme', content: tab, modal: true, width: 450, bbar: buttons } );
 			modal.show( );
+		}
+
+		showDate( ) {
+			let dates = new DatePicker({locale:'fr-FR',horizontal:true} );
+			dates.show( );
 		}
 
 		alertClick( ) {

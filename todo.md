@@ -12,6 +12,9 @@
 - bottombar member
 
 # new elements #
-- Toolbar
+- Combobox
+- DateTimePicker
 - PropertyList
 - Maps (http://simplemaps.com/)
+
+# i18n #

@@ -432,3 +432,61 @@ body {
   position: relative;
   border-bottom: 1px solid #eeeeee;
 }
+.x-date-picker {
+  background-color: #ffffff;
+}
+.x-date-picker .header {
+  background-color: #0097a7;
+  color: #ffffff;
+  padding: 20px;
+}
+.x-date-picker .header .year {
+  font-size: 16px;
+}
+.x-date-picker .header .date {
+  font-size: 36px;
+  font-weight: bold;
+}
+.x-date-picker .content {
+  min-height: 300px;
+}
+.x-date-picker .content .selector {
+  font-weight: bold;
+  padding: 8px;
+  padding-top: 16px;
+}
+.x-date-picker .content .days {
+  padding: 8px;
+}
+.x-date-picker .content .days .day {
+  text-align: center;
+  padding: 4px 0;
+}
+.x-date-picker .content .days .day.out {
+  color: #bdbdbd;
+}
+.x-date-picker .content .days .day.cur {
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.x-date-picker .content .days .day.cur .mrk {
+  border-radius: 50%;
+  background-color: #006064;
+  display: block;
+  padding: 8px;
+  min-width: 32px;
+  box-sizing: border-box;
+  min-height: 32px;
+}
+.x-date-picker .x-bar {
+  padding: 8px;
+}
+.x-date-picker.horizontal .header {
+  max-width: 124px;
+}
+.x-date-picker.horizontal .content {
+  min-height: 300px;
+  min-width: 350px;
+}

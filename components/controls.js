@@ -1102,3 +1102,221 @@ class 	GroupBox extends Component
 	}
 }
 
+/** *********************************************************************************************************
+ * DatePicker class
+ */
+
+class 	DatePicker extends WindowBase
+{
+	constructor( cfg ) {
+		super( cfg );
+
+		this.modal = true;
+		this.date = this.date || new Date( );
+	}
+
+	_buildRow( values, hdr ) {
+		
+		let items = [];
+		for( let i in values ) {
+
+			let v = values[i],
+				cls = 'day',
+				mrk;
+
+			if( hdr ) {
+				cls += ' hdr';
+			}
+
+			let t;
+			if( v.cur ) {
+				cls += ' cur';
+				
+				t = {
+					cls: cls,
+					flex: 1,
+					items: {
+						cls: 'mrk',
+						content: ''+v.v
+					},
+				};
+			}
+			else {
+				if( v.out ) {
+					cls += ' out';
+				}
+
+				t = {
+					cls: cls,
+					flex: 1,
+					content: ''+v.v,
+				};
+			}
+
+			t.onclick = this.selectDate.bind( this, v.d );
+
+			items.push( t );
+		}
+
+		return {
+			layout: 'horizontal',
+			style: {
+				alignItems: 'center',
+			},
+			flex: 1,
+			items: items
+		}
+	}
+
+	selectDate( d ) {
+		this.date = d;
+		this._refresh( );
+	}
+
+	onClose( ) {
+		this.close( );
+	}
+
+	toDay( ) {
+		this.date = new Date( );
+		this._refresh( );
+	}
+
+	render( ) {
+
+		let now = this.date,
+			locale = this.locale || navigator.language,
+			fmt = {weekday: "short", month: "short", day: "numeric" },
+			fmt2 = { year: "numeric", month: "long" };
+
+		let header = {
+			layout: 'vertical',
+			cls: 'header',
+			items: [
+				{
+					cls: 'year',
+					content: ''+now.getFullYear( )
+				},
+				{
+					cls: 'date',
+					content: now.toLocaleString( locale, fmt )
+				}
+			]
+		};
+
+		let date_sel = {
+			cls: 'selector',
+			layout: 'horizontal',
+			items: [
+				{ xtype: 'Icon', icon: 'fa@angle-left' },
+				{
+					flex: 1,
+					style: {
+						textAlign: 'center',
+					},
+					content: now.toLocaleString( locale, fmt2 )
+				},
+				{ xtype: 'Icon', icon: 'fa@angle-right' },
+			]
+		};
+
+		
+		let items = [];
+		items.push( this._buildRow( [{v:'S'},{v:'M'}, {v:'T'}, {v:'W'}, {v:'T'}, {v:'F'}, {v:'S'}], true ) );
+
+		let today = now.getDate( );
+		now.setDate( 1 );
+
+		let fday = now.getDay( ),
+			run, row, d, n;
+
+		row = [];
+		
+		if( fday==0 ) {
+			fday = 7;
+		}
+
+		for( d=fday, n=0; d>0; d--, n++ ) {
+			run = new Date( now.getTime() )
+			run.setDate( -(d-1) );
+			row.push( {out:true, v: run.getDate(), d: run} );
+		}
+
+		for( d=0; n<42; d++, n++ ) {
+
+			if( row.length==7 ) {
+				items.push( this._buildRow( row, false ) );
+				row = [];
+			}
+
+			run = new Date( now.getTime() );
+			run.setDate( d+1 );
+			
+			let e = run.getDate( );
+
+			if( today==(d+1) ) {
+				row.push( {cur:true, v: run.getDate(), d: run} );
+			}
+			else if( run.getMonth()==now.getMonth() ) {
+				row.push( {v: run.getDate(), d: run} );	
+			}
+			else {
+				row.push( {out:true, v: run.getDate(), d: run} );	
+			}
+		}
+
+		items.push( this._buildRow( row, {cls:'day'} ) );
+
+		return {
+			cls: this.horizontal ? 'horizontal' : 'vertical',
+			layout: this.horizontal ? 'horizontal' : 'vertical',
+			items: [
+				header,
+				{
+					cls: 'content',
+					layout: 'vertical',
+					flex: 1,
+					items: [
+						date_sel,
+						{
+							cls: 'days',
+							flex: 1,
+							layout: 'vertical',
+							items: items
+						},
+						{
+							cls: 'x-bar',
+							layout: {
+								type: 'horizontal',
+								direction: 'end'
+							},
+							items: [
+								{
+									xtype: 'Button',
+									title: 'Today',
+									width: 80,
+									handler: this.toDay.bind(this)
+								},
+								{
+									flex: 1,
+								},
+								{
+									xtype: 'Button',
+									title: 'OK',
+									width: 80,
+									handler: this.onClose.bind(this)
+								},
+								{
+									xtype: 'Button',
+									title: 'Cancel',
+									width: 80,
+									handler: this.onClose.bind(this)
+								},
+							]
+						}
+					]
+				}
+			]
+		}
+	}
+}
