@@ -399,7 +399,7 @@ class 	TextField extends Component
 
 		if( this.multiline ) {
 			ta_style.resize = 'none';
-		
+
 			if( this.grow ) {
 				ta_style.maxHeight = this.grow;
 
@@ -419,6 +419,7 @@ class 	TextField extends Component
 			layout: 'vertical',
 			style: {
 				minHeight: 'min-content',
+				minWidth: 1,
 			},
 					
 			items: [
@@ -482,18 +483,24 @@ class 	TextField extends Component
 
 	_acquireTA( dom ) {
 		this._ta = dom;
+		if( dom ) {
+			asap( this._autoSize, this );
+		}
 	}
 
 	_autoSize( ) {
 		let dom = this._ta,
-			h = dom.style.height;
+			h = dom.style.height,
+			height;
 
 		dom.style.height = '0px';
-		dom.value += ' ';
-		this._height = dom.scrollHeight;
+		height = dom.scrollHeight;
 		dom.style.height = h;
 		
-		this._refresh( );		
+		if( this._height!=height )  {
+			this._height = height;
+			this._refresh( );		
+		}
 	}
 }
 

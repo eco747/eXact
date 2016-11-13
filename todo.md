@@ -13,9 +13,6 @@
 
 # new elements #
 - Toolbar
-- TextArea
-- RadioButton
-- RadioGroup
 - PropertyList
 - Group
 - Tabs

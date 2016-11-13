@@ -185,6 +185,7 @@ body {
 .x-text-field {
   padding-top: 4px;
   margin-top: 4px;
+  margin-bottom: 6px;
 }
 .x-text-field .x-label {
   box-sizing: border-box;
@@ -238,15 +239,12 @@ body {
 .x-check-box .x-label {
   color: #757575;
 }
-.x-check-box.focus .x-label {
-  color: #0097a7;
-}
 .x-check-box .x-icon {
   font-size: 14px;
   color: #424242;
 }
-.x-check-box.x-checked .x-icon {
-  color: #00bcd4;
+.x-check-box.focus .x-label {
+  color: #0097a7;
 }
 .x-button {
   box-sizing: border-box;
