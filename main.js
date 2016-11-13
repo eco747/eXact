@@ -344,6 +344,18 @@ window.onload = function( ) {
 						labelWidth: lw,
 					},
 					{
+						xtype: 'CheckBox',
+						label: 'Radio 1',
+						labelWidth: lw,
+						group: 'group'
+					},
+					{
+						xtype: 'CheckBox',
+						label: 'Radio 2',
+						labelWidth: lw,
+						group: 'group'
+					},
+					{
 						layout: {
 							type: 'horizontal',
 							direction: 'end'

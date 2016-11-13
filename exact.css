@@ -23,7 +23,8 @@ body {
   font-family: fontawesome;
   display: inline-block;
 }
-.x-text {
+.x-text,
+.x-label {
   cursor: default;
 }
 .x-app-bar {

@@ -504,6 +504,8 @@ class 	TextField extends Component
  * Standard CheckBox
  */
 
+let iii = 0;
+
 class 	CheckBox extends Component
 {
 	/**
@@ -514,6 +516,7 @@ class 	CheckBox extends Component
 	 * @param {String} cfg.labelAlign - label alignment, one of 'left', 'right', 'top'
 	 * @param {String} cfg.iconCheck - specific icon when checked
 	 * @param {String} cfg.iconUncheck - specific icon when unchecked
+	 * @param {string} cfg.group - if set this element is a radio 
 	 */
 	constructor( cfg ) {
 		super( cfg, {value:false} );
@@ -535,28 +538,22 @@ class 	CheckBox extends Component
 
 	render( ) {
 
-		let { value, label, labelWidth, labelAlign, iconCheck, iconUncheck } = this;
-		
+		let { group, value, label, labelWidth, labelAlign, iconCheck, iconUncheck } = this;
 		let items = [];
 
-		// prepare input ------------------
-		/*items.push({
-			tag: 'input',
-			flex: 1,
-			type: 'checkbox',
-			tabIndex: -1,
-			style: {
-				pointerEvents: 'all',
-				opacity: 0,
-				position: 'absolute',
-				width: '100%',
-				height: '100%',
-				margin: 0,
-				cursor: 'pointer',
-			},
-			value: 'on',
-			checked: value,
-		});*/
+		if( group ) {
+			items.push({
+				tag: 'input',
+				type: 'radio',
+				name: group,
+				value: iii++,
+				checked: value,
+				style: {
+					display: 'none'
+				},
+				ref: this._watchChange.bind(this)
+			});
+		}
 
 		// prepare label -----------------
 		if( label || labelWidth ) {
@@ -569,17 +566,27 @@ class 	CheckBox extends Component
 			});
 		}
 
+		let ic;
+		if( value ) {
+			ic = iconCheck || (group ? 'fa@check-circle-o' : 'fa@check-square-o');
+		}
+		else {
+			ic = iconUncheck || (group ? 'fa@circle-o' : 'fa@square-o');
+		}
+
 		items.push({
 			layout: 'horizontal',
 			flex: 1,
 			items: {
 				xtype: 'Icon',
-				icon: value ? (iconCheck || 'fa@check-square-o') : (iconUncheck || 'fa@square-o'),
+				icon: ic,
+				style: {
+					pointerEvents: 'none'
+				}
 			}
 		});
 
 		return {
-			tag: 'label',
 			tabIndex: 0,
 			cls: (value ? 'x-checked' : '') + (this._focus ? ' focus' : ''),
 			layout: 'horizontal',
@@ -601,7 +608,7 @@ class 	CheckBox extends Component
 		this._refresh( );
 	}
 
-	onClick( ) {
+	onClick( e ) {
 		this._toggle( );
 	}
 
@@ -611,9 +618,47 @@ class 	CheckBox extends Component
 		}
 	}
 
+	beforeUnmount( ) {
+		if( this._chg_timer ) {
+			clearInterval( this._chg_timer );
+		}
+	}
+
+	// onchange is not fired when a radio changed for the previously checked radio
+	// so, we watch changes by hand every 200ms (dirty hack)
+
+	_watchChange( ) {
+		if( this._chg_timer ) {
+			clearInterval( this._chg_timer );
+			delete this._chg_timer;
+		}
+
+		if( this.group ) {
+			let dom = this._getDOM( ).childNodes[0],
+				me = this;
+
+			function check( ) {
+				if( dom.checked!=me.value ) {
+					me.setValue( dom.checked );
+				}
+			}
+
+			this._chg_timer = setInterval( check, 200 );
+		}
+	}
+
 	_toggle( ) {
+
 		let value = !this.value;
-		this.setValue( value );
+			
+		if( !this.group ) {
+			this.setValue( value );
+		}
+		else {
+			let dom = this._getDOM( ).childNodes[0];
+			dom.checked = true;
+		}
+			
 		this.fireEvent('changed', value );
 	}
 }
