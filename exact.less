@@ -209,6 +209,20 @@ body {
     		cursor: pointer;
     	}
     }
+
+    &>.x-bar >*:first-child {
+    	margin-left: 0;
+    }
+
+    &>.x-bar >*:last-child {
+    	margin-right: 0;	
+    }
+
+    &>.x-bar.bottom {
+    	padding: 8px 16px 8px 16px;
+    	border-top: 1px solid #eee;
+    	background-color: #FdFdFd;
+    }
 }
 
 .x-modal-mask {
@@ -339,6 +353,8 @@ body {
 	box-sizing: border-box;
 	border: 1px solid #eeeeee;
 	padding: 4px;
+	background-color: #ffffff;
+	margin: 0 4px;
 
 	&.x-default {
 		background-color: #0097A7;

@@ -164,6 +164,20 @@
 		}
 
 		render( ) {
+
+			let bbar;
+
+			if( this.bbar ) {
+				bbar = {
+					cls: 'x-bar bottom',
+					layout: {
+						type: 'horizontal',
+						direction: 'end'
+					},
+					items: this.bbar
+				}
+			}
+
 			return {
 	    		cls: 'x-box x-nosel ' + this.cls,
 	    		style: {
@@ -177,7 +191,8 @@
 
 	    		items: [
 	    			this._header,
-	    			this.content
+	    			this.content,
+	    			bbar
 	    		]
 		  	}
 	    }

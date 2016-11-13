@@ -162,6 +162,17 @@ body {
 .x-window > .x-header .x-icon {
   cursor: pointer;
 }
+.x-window > .x-bar > *:first-child {
+  margin-left: 0;
+}
+.x-window > .x-bar > *:last-child {
+  margin-right: 0;
+}
+.x-window > .x-bar.bottom {
+  padding: 8px 16px 8px 16px;
+  border-top: 1px solid #eee;
+  background-color: #FdFdFd;
+}
 .x-modal-mask {
   position: absolute;
   z-index: 10;
@@ -254,6 +265,8 @@ body {
   box-sizing: border-box;
   border: 1px solid #eeeeee;
   padding: 4px;
+  background-color: #ffffff;
+  margin: 0 4px;
 }
 .x-button.x-default {
   background-color: #0097A7;

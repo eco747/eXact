@@ -354,41 +354,30 @@ window.onload = function( ) {
 						label: 'Radio 2',
 						labelWidth: lw,
 						group: 'group'
-					},
-					{
-						layout: {
-							type: 'horizontal',
-							direction: 'end'
-						},
-						style: {
-							marginTop: 8
-						},
-						items: [
-							{
-								xtype: 'Button',
-								title: 'OK',
-								width: 80,
-								handler: close
-							},
-							{
-								width: 4,
-							},
-							{
-								xtype: 'Button',
-								title: 'Cancel',	
-								width: 80,
-								handler: close
-							}
-						]
 					}
 				]
-			}
+			};
+
+			let buttons = [
+				{
+					xtype: 'Button',
+					title: 'OK',
+					width: 80,
+					handler: close
+				},
+				{
+					xtype: 'Button',
+					title: 'Cancel',	
+					width: 80,
+					handler: close
+				}
+			];
 
 			function close( ) {
 				modal.close( );
 			}
 
-			let modal = new Window( {title:'Edit item', content: items, modal: true, frame: 1} );
+			let modal = new Window( {title:'Edit item', content: items, modal: true, bbar: buttons} );
 			modal.show( );
 		}
 

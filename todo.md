@@ -14,5 +14,4 @@
 # new elements #
 - Toolbar
 - PropertyList
-- Group
 - Maps (http://simplemaps.com/)
