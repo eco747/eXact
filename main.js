@@ -339,6 +339,11 @@ window.onload = function( ) {
 						labelWidth: lw
 					},
 					{
+						xtype: 'CheckBox',
+						label: 'Checkbox',
+						labelWidth: lw,
+					},
+					{
 						layout: {
 							type: 'horizontal',
 							direction: 'end'
