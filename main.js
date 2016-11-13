@@ -414,13 +414,8 @@ window.onload = function( ) {
 					},
 					{
 						title: 'Sounds',
-						icon: 'fa@music',
 						items: {
-							xtype: 'GroupBox',
-							title: 'sounds',
-							items: {
-								content: 'sounds'
-							}
+							content: 'sounds'
 						}
 					}
 				]
