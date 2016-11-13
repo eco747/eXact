@@ -452,8 +452,7 @@ body {
 }
 .x-date-picker .content .selector {
   font-weight: bold;
-  padding: 8px;
-  padding-top: 16px;
+  padding: 16px;
 }
 .x-date-picker .content .days {
   padding: 8px;

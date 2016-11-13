@@ -939,6 +939,10 @@ class Tooltip extends WindowBase
 		tar_dom.style.top = y;
 	}
 
+	beforeUnmount( ) {
+		this._stopShowTimer( );
+	}
+
 	_showTooltip( ) {
 
 		let me = this;
@@ -1153,7 +1157,9 @@ class 	DatePicker extends WindowBase
 				};
 			}
 
-			t.onclick = this.selectDate.bind( this, v.d );
+			if( v.d ) {
+				t.onclick = this.selectDate.bind( this, v.d );
+			}
 
 			items.push( t );
 		}
@@ -1268,7 +1274,7 @@ class 	DatePicker extends WindowBase
 		items.push( this._buildRow( row, {cls:'day'} ) );
 
 		return {
-			cls: this.horizontal ? 'horizontal' : 'vertical',
+			cls: 'x-nosel' + (this.horizontal ? ' horizontal' : ' vertical'),
 			layout: this.horizontal ? 'horizontal' : 'vertical',
 			items: [
 				header,

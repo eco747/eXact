@@ -362,7 +362,6 @@
 			super( cfg );
 
 			this.clickDismiss = true;
-			//setTimeout( this.close.bind(this), 30000 );
 		}
 
 		afterMount( ) {
@@ -522,8 +521,13 @@
 			this._clsName = 'x-item';
 			this.addEvents( 'discard' );
 
-			setTimeout( this._discard.bind(this), 5000 );
-			setTimeout( this._fadeOut.bind(this), 4500 );
+			this._tm1  = setTimeout( this._discard.bind(this), 5000 );
+			this._tm12 = setTimeout( this._fadeOut.bind(this), 4500 );
+		}
+
+		beforeUnmount( ) {
+			if( this._tm1 ) {clearTimeout( this._tm1 );}
+			if( this._tm2 ) {clearTimeout( this._tm2 );}
 		}
 
 		render( ) {
@@ -550,10 +554,12 @@
 		}
 
 		_fadeOut( ) {
+			delete this._tm2;
 			this._addDOMClass( 'fade' );
 		}
 
 		_discard( ) {
+			delete this._tm1;
 			this.fireEvent( 'discard', this.uid );
 		}
 	}
