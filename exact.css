@@ -170,6 +170,7 @@ body {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
+  cursor: default;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,7 +269,7 @@ body {
   outline: none;
 }
 .x-alert {
-  border-left: 8px solid #bf360c;
+  border-left: 8px solid #bf360c !important;
 }
 .x-alert .x-icon {
   color: #bf360c;
@@ -278,7 +279,7 @@ body {
   color: white;
 }
 .x-info {
-  border-left: 8px solid #00BCD4;
+  border-left: 8px solid #006064 !important;
 }
 .x-info .x-icon {
   color: #4caf50;
@@ -393,8 +394,13 @@ body {
   padding: 8px;
   box-sizing: border-box;
   cursor: pointer;
-  height: 34px;
+  height: 2.4em;
   margin-bottom: -1px;
+}
+.x-tab-panel > .x-header .x-tab .x-icon {
+  font-size: 80%;
+  margin: 0 4px;
+  color: #666666;
 }
 .x-tab-panel > .x-header .x-tab:hover {
   border-bottom: 1px solid #00BCD4;
@@ -402,4 +408,14 @@ body {
 .x-tab-panel > .x-header .x-tab.active {
   border-bottom: 3px solid #00BCD4;
   cursor: default;
+}
+.x-tab-panel > .content {
+  padding: 8px;
+}
+.x-group-box > .x-text {
+  padding: 2px 0 0 0;
+  margin-bottom: 4px;
+  color: #757575;
+  position: relative;
+  border-bottom: 1px solid #eeeeee;
 }

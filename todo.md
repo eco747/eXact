@@ -15,5 +15,4 @@
 - Toolbar
 - PropertyList
 - Group
-- Tabs
 - Maps (http://simplemaps.com/)

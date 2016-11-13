@@ -1037,10 +1037,14 @@ class 	TabPanel extends Component
 		for( i in this.items ) {
 
 			let item = this.items[i];
+
 			header_items.push({
 				cls: 'x-tab' + (item.active ? ' active' : ''),
 				onclick: this.onTabClick.bind(this,item),
-				content: item.title
+				items: [
+					item.title,
+					(item.icon ? { xtype: 'Icon', icon:item.icon } : undefined),
+				]
 			});
 		}
 
@@ -1054,6 +1058,7 @@ class 	TabPanel extends Component
 					items: header_items
 				},
 				{
+					cls: 'content',
 					flex: 1,
 					items: this._active
 				}
@@ -1070,5 +1075,30 @@ class 	TabPanel extends Component
 }
 
 
+/** *********************************************************************************************************
+ * GroupBox class
+ */
 
+class 	GroupBox extends Component
+{
+	constructor( cfg ) {
+		super( cfg );
+	}
+
+	render( ) {
+		return {
+			cls: 'x-group',
+			items: [
+				{
+					cls: 'x-text',
+					content: this.title
+				},
+				{
+					cls: 'content',
+					items: this.items
+				}
+			]
+		}
+	}
+}
 
