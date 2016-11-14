@@ -78,7 +78,7 @@ window.onload = function( ) {
 
 			this.appbar = new AppBar({
 				title:'eXact', 
-				icon:'fa@hand-spock-o ',
+				icon:'fa@puzzle-piece',
 				menu: menu
 			});
 		}
